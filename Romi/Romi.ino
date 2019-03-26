@@ -1,5 +1,5 @@
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Library Includes.                                                             *
  * Be sure to check each of these to see what variables/functions are made        *
  * global and accessible.                                                        *
@@ -23,7 +23,7 @@
 
 
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Definitions.  Other definitions exist in the .h files above.                  *
  * Also ensure you check pins.h for pin/device definitions.                      *
  *                                                                               *
@@ -32,7 +32,7 @@
 
 
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Class Instances.                                                              *
  * This list is complete for all devices supported in this code.                 *
  *                                                                               *
@@ -61,7 +61,7 @@ Mapper        Map; //Class for representing the map
 
 Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Global variables.                                                             *
  * These global variables are not mandatory, but are used for the example loop() *
  * routine below.                                                                *
@@ -74,7 +74,7 @@ float left_speed_demand = 0;
 float right_speed_demand = 0;
 
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * This setup() routine initialises all class instances above and peripherals.   *
  * It is recommended:                                                            *
  * - You keep this sequence of setup calls if you are to use all the devices.    *
@@ -95,16 +95,18 @@ void setup()
   LeftSpeedControl.setMax(100);
   RightSpeedControl.setMax(100);
 
-  // For this example, we'll calibrate only the 
+  // For this example, we'll calibrate only the
   // centre sensor.  You may wish to use more.
   LineCentre.calibrate();
+  LineLeft.calibrate();
+  LineRight.calibrate();
 
   //Setup RFID card
   setupRFID();
 
   // These functions calibrate the IMU and Magnetometer
   // The magnetometer calibration routine require you to move
-  // your robot around  in space.  
+  // your robot around  in space.
   // The IMU calibration requires the Romi does not move.
   // See related lab sheets for more information.
   /*
@@ -119,7 +121,7 @@ void setup()
   // from A0, which should itself be quite random.
   randomSeed(analogRead(A0));
 
-  
+
   // Initialise Serial communication
   Serial.begin( BAUD_RATE );
   delay(1000);
@@ -129,12 +131,12 @@ void setup()
   // the current map.
   //
   // !!! A second button press will erase the map !!!
-  ButtonB.waitForButton();  
+  ButtonB.waitForButton();
 
   Map.printMap();
 
   // Watch for second button press, then begin autonomous mode.
-  ButtonB.waitForButton();  
+  ButtonB.waitForButton();
 
   Serial.println("Map Erased - Mapping Started");
   Map.resetMap();
@@ -146,7 +148,7 @@ void setup()
 
   // Because code flow has been blocked, we need to reset the
   // last_time variable of the PIDs, otherwise we update the
-  // PID with a large time elapsed since the class was 
+  // PID with a large time elapsed since the class was
   // initialised, which will cause a big intergral term.
   // If you don't do this, you'll see the Romi accelerate away
   // very fast!
@@ -155,17 +157,17 @@ void setup()
   left_speed_demand = 5;
   right_speed_demand = 5;
 
-  
-  
+
+
 }
 
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
- * This loop() demonstrates all devices being used in a basic sequence.          
- * The Romi should:                                                                              
- * - move forwards with random turns 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * This loop() demonstrates all devices being used in a basic sequence.
+ * The Romi should:
+ * - move forwards with random turns
  * - log lines, RFID and obstacles to the map.
- * 
+ *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void loop() {
 
@@ -175,18 +177,18 @@ void loop() {
   doMovement();
 
   doMapping();
-  
+
   delay(2);
 }
 
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * We have implemented a random walk behaviour for you
- * with a *very* basic obstacle avoidance behaviour.  
- * It is enough to get the Romi to drive around.  We 
+ * with a *very* basic obstacle avoidance behaviour.
+ * It is enough to get the Romi to drive around.  We
  * expect that in your first week, should should get a
  * better obstacle avoidance behaviour implemented for
- * your Experiment Day 1 baseline test.  
+ * your Experiment Day 1 baseline test.
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void doMovement() {
 
@@ -217,27 +219,27 @@ void doMovement() {
     turn_bias = randGaussian(0, 6.5 );
 
     // Setting a speed demand with these variables
-    // is automatically captured by a speed PID 
+    // is automatically captured by a speed PID
     // controller in timer3 ISR. Check interrupts.h
     // for more information.
     left_speed_demand = forward_bias + turn_bias;
     right_speed_demand = forward_bias - turn_bias;
-  } 
+  }
 
 }
 
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * This function groups up our sensor checks, and then
- * encodes into the map.  To get you started, we are 
+ * encodes into the map.  To get you started, we are
  * simply placing a character into the map.  However,
- * you might want to look using a bitwise scheme to 
+ * you might want to look using a bitwise scheme to
  * encode more information.  Take a look at mapping.h
  * for more information on how we are reading and
  * writing to eeprom memory.
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void doMapping() {
-  
+
   // Read the IR Sensor and determine distance in
   // mm.  Make sure you calibrate your own code!
   // We threshold a reading between 40mm and 12mm.
@@ -245,12 +247,12 @@ void doMapping() {
   // We can't trust very close readings or very far.
   // ...but feel free to investigate this.
   float distance = DistanceSensor.getDistanceInMM();
-  if( distance < 40 && distance > 12 ) {
+  if( distance < 400 && distance > 120 ) {
 
     // We know the romi has the sensor mounted
     // to the front of the robot.  Therefore, the
     // sensor faces along Pose.Theta.
-    // We also add on the distance of the 
+    // We also add on the distance of the
     // sensor away from the centre of the robot.
     distance += 80;
 
@@ -258,38 +260,37 @@ void doMapping() {
     // Here we calculate the actual position of the obstacle we have detected
     float projected_x = Pose.getX() + ( distance * cos( Pose.getThetaRadians() ) );
     float projected_y = Pose.getY() + ( distance * sin( Pose.getThetaRadians() ) );
-    Map.updateMapFeature( (byte)'O', projected_x, projected_y );
-    
-    
-  } 
+    Map.updateMapFeature( (byte)'O', projected_y, projected_x );
+
+
+  }
 
   // Check RFID scanner.
   // Look inside RF_interface.h for more info.
   if( checkForRFID() ) {
 
-    // Add card to map encoding.  
+    // Add card to map encoding.
     Map.updateMapFeature( (byte)'R', Pose.getY(), Pose.getX() );
 
     // you can check the position reference and
-    // bearing information of the RFID Card in 
+    // bearing information of the RFID Card in
     // the following way:
     // serialToBearing( rfid.serNum[0] );
     // serialToXPos( rfid.serNum[0] );
     // serialToYPos( rfid.serNum[0] );
     //
-    // Note, that, you will need to set the x,y 
+    // Note, that, you will need to set the x,y
     // and bearing information in rfid.h for your
     // experiment setup.  For the experiment days,
-    // we will tell you the serial number and x y 
-    // bearing information for the cards in use.  
-    
-  } 
+    // we will tell you the serial number and x y
+    // bearing information for the cards in use.
+
+  }
 
   // Basic uncalibrated check for a line.
   // Students can do better than this after CW1 ;)
-  if( LineCentre.readRaw() > 580 ) {
+  // Condition will depend on calibration method, the one below worked for my Romi using static calibration
+  if( (LineCentre.readCalibrated()+ LineLeft.readCalibrated()+ LineRight.readCalibrated())> 300  ) {
       Map.updateMapFeature( (byte)'L', Pose.getY(), Pose.getX() );
-  } 
+  }
 }
-
-

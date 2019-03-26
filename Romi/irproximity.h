@@ -33,15 +33,16 @@ int SharpIR::getDistanceRaw()
  */
 float SharpIR::getDistanceInMM()
 {
-    
+
     float distance = (float)analogRead( pin );
-    
+
     // map this to 0 : 5v range.
     distance *= 0.0048;
+    //Original numbers provided gave distance in cm. Numbers below updated with
+    //calibration values for my Romi with distance in mm
+    const float exponent = (1/-0.7); //Calibration values for my Romi
+    distance = pow( ( distance / 76.14 ), exponent);
 
-    const float exponent = (1/-0.616);
-    distance = pow( ( distance / 12.494 ), exponent);
-       
     return distance;
 }
 

@@ -20,7 +20,7 @@ class Magnetometer
         float z = 0;
 
     private:
-        float sensitivity = 6.842;
+        float sensitivity = 1.0/6842.0; //This makes more sense if you look at data sheet of the sensor
         int x_min = 32767;
         int y_min = 32767;
         int z_min = 32767;
@@ -49,24 +49,24 @@ void Magnetometer::init()
 
 void Magnetometer::readRaw()
 {
-  
+
   mag.read();
-  
+
   x = mag.m.x;
   y = mag.m.y;
   z = mag.m.z;
-  
+
 }
 
 void Magnetometer::readCalibrated()
 {
 
   mag.read();
-  
+
   x = sensitivity * (mag.m.x - x_offset) * x_scale;
   y = sensitivity * (mag.m.y - y_offset) * y_scale;
   z = sensitivity * (mag.m.z - z_offset) * z_scale;
-  
+
 }
 
 void Magnetometer::calibrate()
@@ -82,7 +82,7 @@ void Magnetometer::calibrate()
     delay(50);
   for (int i=0;i<NUM_CALIBRATIONS_MAG;i++)
   {
-    
+
     mag.read();
 
     x_max = max(x_max, mag.m.x);
@@ -106,19 +106,19 @@ void Magnetometer::calibrate()
   delay(500);
   digitalWrite( BUZZER_PIN, LOW );
   delay(500);
-  
+
 }
 
 void Magnetometer::calculateOffsets()
 {
-  
+
   x_offset = (x_max + x_min) / 2;
   y_offset = (y_max + y_min) / 2;
   z_offset = (z_max + z_min) / 2;
 
   x_scale = (x_max - x_min) / 2;
   y_scale = (y_max - y_min) / 2;
-  z_scale = (z_max - z_min) / 2; 
+  z_scale = (z_max - z_min) / 2;
 
   float avg_scale = (x_scale + y_scale + z_scale) / 3;
 
@@ -126,20 +126,20 @@ void Magnetometer::calculateOffsets()
   y_scale = avg_scale / y_scale;
   z_scale = avg_scale / z_scale;
 
-  Serial.print("X: ");
-  Serial.print(x_offset);  
-  Serial.print("Y: ");
-  Serial.print(y_offset);
-  Serial.print("Z: ");
-  Serial.println(z_offset);
-  
-  Serial.print("X: ");
-  Serial.print(x_scale);  
-  Serial.print("Y: ");
-  Serial.print(y_scale);
-  Serial.print("Z: ");
-  Serial.println(z_scale);
-  
+  //Serial.print("X: ");
+  //Serial.print(x_offset);
+  //Serial.print("Y: ");
+  //Serial.print(y_offset);
+  //Serial.print("Z: ");
+  //Serial.println(z_offset);
+
+  //Serial.print("X: ");
+  //Serial.print(x_scale);
+  //Serial.print("Y: ");
+  //Serial.print(y_scale);
+  //Serial.print("Z: ");
+  //Serial.println(z_scale);
+
 }
 
 

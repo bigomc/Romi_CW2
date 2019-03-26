@@ -5,7 +5,7 @@
 #define GEAR_RATIO 120.0
 #define COUNTS_PER_SHAFT_REVOLUTION 12.0
 const float WHEEL_RADIUS = 35.0;
-const float WHEEL_DISTANCE = 143/2;
+const float WHEEL_DISTANCE = 140; //Corrected to fit calculations below
 const float COUNTS_PER_WHEEL_REVOLUTION = GEAR_RATIO * COUNTS_PER_SHAFT_REVOLUTION;
 const float MM_PER_COUNT = ( 2 * WHEEL_RADIUS * PI ) / COUNTS_PER_WHEEL_REVOLUTION;
 
@@ -24,7 +24,7 @@ class Kinematics
          void  setDebug(bool state);
          float getDistanceFromOrigin();
          float getAngularVelocity();
-        
+
     private:
 
          float x=900;
@@ -45,24 +45,24 @@ void Kinematics::update()
     //Calculate delta since last update
     float left_delta = (left_encoder_count - last_left_encoder_count)*MM_PER_COUNT;
     float right_delta = (right_encoder_count - last_right_encoder_count)*MM_PER_COUNT;
-    float mean_delta = (left_delta + right_delta) / 2;  
-    
+    float mean_delta = (left_delta + right_delta) / 2;
+
     //Store counts
     last_left_encoder_count = left_encoder_count;
-    last_right_encoder_count = right_encoder_count;  
+    last_right_encoder_count = right_encoder_count;
 
     //Update position
     x+= mean_delta * cos(theta);
     y+= mean_delta * sin(theta);
-    theta -=  (left_delta-right_delta) / (WHEEL_DISTANCE);  
+    theta -=  (left_delta-right_delta) / (WHEEL_DISTANCE);
 
     float time_elapsed = millis() - last_update;
     last_update = millis();
 
-    angular_velocity = ( (left_delta-right_delta) / WHEEL_DISTANCE );
-    angular_velocity -= last_theta;
+    angular_velocity = -( (left_delta-right_delta) / WHEEL_DISTANCE ); //To me positive is CWW
+    //angular_velocity -= last_theta; //I don't think we need this for angular velocity
     angular_velocity /= time_elapsed;
-    
+
 
     //Wrap theta between -PI and PI.
     if (theta > PI)
@@ -72,7 +72,7 @@ void Kinematics::update()
     else if(theta < -PI)
     {
         theta += 2*PI;
-    } 
+    }
 
     last_theta = theta;
 
@@ -80,7 +80,7 @@ void Kinematics::update()
     {
         printPose();
     }
-  
+
 }
 
 
