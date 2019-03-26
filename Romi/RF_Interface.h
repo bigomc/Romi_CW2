@@ -3,7 +3,7 @@
 
 #include "RFID.h"
 #include <DigitalIO.h>
- 
+
 RFID rfid(SS_PIN, RST_PIN); //create an instance rfid for the class RFID
 const int KEY_SIZE = 6;
 unsigned char Key[KEY_SIZE];
@@ -20,7 +20,7 @@ unsigned char serials[NUM_CARDS] =  {137, 169, 224};
 
 void setupRFID()
 {
-  
+
     rfid.init();
 
     for (int i=0;i<KEY_SIZE;i++)
@@ -37,16 +37,16 @@ bool checkForRFID()
     //Serial.println(F("Checking"));
     if (rfid.isCard())
     {
-      
+
         //Serial.println(F("Got a card"));
-    
+
         if (rfid.readCardSerial())
         {
             for (int i=0; i<=4; i++)//card value: "xyz xyz xyz xyz xyz" (15 digits maximum; 5 pairs of xyz)hence 0<=i<=4 //
             {
                 //Serial.print(rfid.serNum[i]);
             }
-      
+
             found=true;
             //Serial.println("");
         }
@@ -67,7 +67,7 @@ float serialToXPos(char * serNum)
     }
 
     Serial.println(F("Error: Card not found"));
-    
+
     return -1;
 }
 
@@ -82,7 +82,7 @@ float serialToYPos(char * serNum)
     }
 
     Serial.println(F("Error: Card not found"));
-    
+
     return -1;
 }
 float serialToBearing(char * serNum)
@@ -91,20 +91,14 @@ float serialToBearing(char * serNum)
     {
         if(serNum[0] == serials[i])
         {
-          return y_poses[i];
+          return bearing[i];
         }
     }
 
     Serial.println(F("Error: Card not found"));
-    
+
     return -1;
 }
 
 
 #endif
-
-
-
-
-
-
