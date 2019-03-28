@@ -21,57 +21,72 @@
     <ClInclude Include="__vm\.Romi.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="imu.h">
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imu.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="interrupts.h">
+    <ClInclude Include="src\interrupts.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="irproximity.h">
+    <ClInclude Include="src\irproximity.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="kinematics.h">
+    <ClInclude Include="src\kinematics.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="line_sensors.h">
+    <ClInclude Include="src\line_sensors.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="magnetometer.h">
+    <ClInclude Include="src\magnetometer.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="mapping.h">
+    <ClInclude Include="src\mapping.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="motors.h">
+    <ClInclude Include="src\motors.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="pid.h">
+    <ClInclude Include="src\pins.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="pins.h">
+    <ClInclude Include="src\Pushbutton.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Pushbutton.h">
+    <ClInclude Include="src\RF_Interface.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="RF_Interface.h">
+    <ClInclude Include="src\RFID.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="RFID.h">
+    <ClInclude Include="src\Romi32U4Buttons.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Romi32U4Buttons.h">
+    <ClInclude Include="src\utils.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils.h">
+    <ClInclude Include="src\pid.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Pushbutton.cpp">
+    <ClCompile Include="src\magnetometer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RFID.cpp">
+    <ClCompile Include="src\Pushbutton.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RFID.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\motors.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\line_sensors.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
