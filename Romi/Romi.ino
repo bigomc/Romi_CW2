@@ -6,19 +6,19 @@
  *                                                                               *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "pins.h"
-#include "utils.h"
-#include "motors.h"
-#include "pid.h"
-#include "interrupts.h"
-#include "kinematics.h"
-#include "line_sensors.h"
-#include "irproximity.h"
-#include "mapping.h"
-#include "src/RF_Interface.h"
 #include <Wire.h>
-#include "imu.h"
-#include "magnetometer.h"
+#include "src/pins.h"
+#include "src/utils.h"
+#include "src/motors.h"
+#include "src/pid.h"
+#include "src/interrupts.h"
+#include "src/kinematics.h"
+#include "src/line_sensors.h"
+#include "src/irproximity.h"
+#include "src/mapping.h"
+#include "src/RF_Interface.h"
+#include "src/imu.h"
+#include "src/magnetometer.h"
 #include "src/Pushbutton.h"
 
 
