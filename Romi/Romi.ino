@@ -15,11 +15,11 @@
 #include "line_sensors.h"
 #include "irproximity.h"
 #include "mapping.h"
-#include "RF_Interface.h"
+#include "src/RF_Interface.h"
 #include <Wire.h>
 #include "imu.h"
 #include "magnetometer.h"
-#include "Pushbutton.h"
+#include "src/Pushbutton.h"
 
 
 
