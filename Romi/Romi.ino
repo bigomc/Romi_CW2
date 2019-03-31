@@ -6,14 +6,12 @@
  *                                                                               *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "a.h"
 #include "src/pid.h"
 #include <Wire.h>
 #include "src/pins.h"
 #include "src/utils.h"
 #include "src/motors.h"
 #include "src/pid.h"
-#include "src/interrupts.h"
 #include "src/kinematics.h"
 #include "src/line_sensors.h"
 #include "src/irproximity.h"
@@ -22,6 +20,7 @@
 #include "src/imu.h"
 #include "src/magnetometer.h"
 #include "src/Pushbutton.h"
+#include "src/Scheduler.h"
 
 
 
@@ -30,8 +29,8 @@
  * Also ensure you check pins.h for pin/device definitions.                      *
  *                                                                               *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-#define BAUD_RATE 9600
-
+#define BAUD_RATE 115200
+#define SAMPLING_TICK_PERIOD    5
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -71,9 +70,9 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 //Use these variables to set the demand of the speed controller
-bool use_speed_controller = true;
-float left_speed_demand = 0;
-float right_speed_demand = 0;
+// bool use_speed_controller = true;
+// float left_speed_demand = 0;
+// float right_speed_demand = 0;
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -86,16 +85,9 @@ float right_speed_demand = 0;
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void setup()
 {
-
-  // These two function set up the pin
-  // change interrupts for the encoders.
-  setupLeftEncoder();
-  setupRightEncoder();
-  startTimer();
-
   //Set speed control maximum outputs to match motor
-  LeftSpeedControl.setMax(100);
-  RightSpeedControl.setMax(100);
+  // // LeftSpeedControl.setMax(100);
+  // RightSpeedControl.setMax(100);
 
   // For this example, we'll calibrate only the
   // centre sensor.  You may wish to use more.
@@ -134,12 +126,10 @@ void setup()
   //
   // !!! A second button press will erase the map !!!
   ButtonB.waitForButton();
-
   Map.printMap();
 
   // Watch for second button press, then begin autonomous mode.
   ButtonB.waitForButton();
-
   Serial.println("Map Erased - Mapping Started");
   Map.resetMap();
 
@@ -154,13 +144,16 @@ void setup()
   // initialised, which will cause a big intergral term.
   // If you don't do this, you'll see the Romi accelerate away
   // very fast!
-  LeftSpeedControl.reset();
-  RightSpeedControl.reset();
-  left_speed_demand = 5;
-  right_speed_demand = 5;
+  // LeftSpeedControl.reset();
+  // RightSpeedControl.reset();
+  // left_speed_demand = 5;
+  // right_speed_demand = 5;
 
+    //Initialise simple scheduler
+    initScheduler();
 
-
+    createTask(UpdateTask, SAMPLING_TICK_PERIOD);
+    createTask(PrintTask, 500);
 }
 
 
@@ -172,17 +165,17 @@ void setup()
  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void loop() {
-
-  // Remember to always update kinematics!!
-  Pose.update();
-
-  doMovement();
-
-  doMapping();
-
-  delay(2);
+    Scheduler();
 }
 
+void UpdateTask() {
+    Pose.update();
+}
+
+void PrintTask() {
+    Serial.println("Print task");
+    Pose.printPose();
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * We have implemented a random walk behaviour for you
@@ -224,8 +217,8 @@ void doMovement() {
     // is automatically captured by a speed PID
     // controller in timer3 ISR. Check interrupts.h
     // for more information.
-    left_speed_demand = forward_bias + turn_bias;
-    right_speed_demand = forward_bias - turn_bias;
+    // left_speed_demand = forward_bias + turn_bias;
+    // right_speed_demand = forward_bias - turn_bias;
   }
 
 }
