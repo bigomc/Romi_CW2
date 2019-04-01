@@ -48,6 +48,9 @@
     <ClInclude Include="src\motors.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\pid.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\pins.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -66,27 +69,33 @@
     <ClInclude Include="src\utils.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\pid.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\imu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\irproximity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\line_sensors.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\magnetometer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mapping.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\motors.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Pushbutton.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\RFID.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\pid.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\motors.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\line_sensors.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

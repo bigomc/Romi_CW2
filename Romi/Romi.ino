@@ -6,7 +6,6 @@
  *                                                                               *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "a.h"
 #include "src/pid.h"
 #include <Wire.h>
 #include "src/pins.h"
@@ -174,11 +173,12 @@ void setup()
 void loop() {
 
   // Remember to always update kinematics!!
-  Pose.update();
+  //Pose.update();
 
-  doMovement();
+  //doMovement();
 
   doMapping();
+
 
   delay(2);
 }
@@ -273,7 +273,10 @@ void doMapping() {
 
     // Add card to map encoding.
     Map.updateMapFeature( (byte)'R', Pose.getY(), Pose.getX() );
-
+	Serial.print("Y: ");
+	Serial.print(Pose.getY());
+	Serial.print("X: ");
+	Serial.println(Pose.getX());
     // you can check the position reference and
     // bearing information of the RFID Card in
     // the following way:
