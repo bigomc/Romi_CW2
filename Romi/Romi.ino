@@ -70,9 +70,13 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 //Use these variables to set the demand of the speed controller
-// bool use_speed_controller = true;
-// float left_speed_demand = 0;
-// float right_speed_demand = 0;
+ bool use_speed_controller = true;
+ float left_speed_demand = 0;
+ float right_speed_demand = 0;
+ float left_speed_control_signal = 0;
+ float right_speed_control_signal = 0;
+
+
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -154,6 +158,8 @@ void setup()
 
     createTask(UpdateTask, SAMPLING_TICK_PERIOD);
     createTask(PrintTask, 500);
+	createTask(ControlSpeed, 10);
+	createTask(MoveMotors, 10);
 }
 
 
@@ -174,7 +180,19 @@ void UpdateTask() {
 
 void PrintTask() {
     Serial.println("Print task");
-    Pose.printPose();
+	Pose.printPose();
+}
+
+void ControlSpeed() {
+	Serial.println("ControlSpeed task");
+	left_speed_control_signal = LeftSpeedControl.update(left_speed_demand, Pose.getLeftVelocity());
+	right_speed_control_signal = RightSpeedControl.update(right_speed_demand, Pose.getRightVelocity());
+}
+
+void MoveMotors() {
+	Serial.println("Move Motors Task");
+	LeftMotor.setPower(left_speed_control_signal);
+	RightMotor.setPower(right_speed_control_signal);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -217,8 +235,8 @@ void doMovement() {
     // is automatically captured by a speed PID
     // controller in timer3 ISR. Check interrupts.h
     // for more information.
-    // left_speed_demand = forward_bias + turn_bias;
-    // right_speed_demand = forward_bias - turn_bias;
+     left_speed_demand = forward_bias + turn_bias;
+     right_speed_demand = forward_bias - turn_bias;
   }
 
 }

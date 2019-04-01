@@ -122,16 +122,25 @@
     <ClInclude Include="src\RFID.h" />
     <ClInclude Include="src\RF_Interface.h" />
     <ClInclude Include="src\Romi32U4Buttons.h" />
+    <ClInclude Include="src\Scheduler.h" />
     <ClInclude Include="src\utils.h" />
+    <ClInclude Include="src\Wheels.h" />
     <ClInclude Include="__vm\.Romi.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\imu.cpp" />
+    <ClCompile Include="src\irproximity.cpp" />
+    <ClCompile Include="src\kinematics.cpp" />
     <ClCompile Include="src\line_sensors.cpp" />
     <ClCompile Include="src\magnetometer.cpp" />
+    <ClCompile Include="src\mapping.cpp" />
     <ClCompile Include="src\motors.cpp" />
     <ClCompile Include="src\pid.cpp" />
     <ClCompile Include="src\Pushbutton.cpp" />
     <ClCompile Include="src\RFID.cpp" />
+    <ClCompile Include="src\Scheduler.c" />
+    <ClCompile Include="src\utils.cpp" />
+    <ClCompile Include="src\Wheels.c" />
   </ItemGroup>
   <PropertyGroup>
     <DebuggerFlavor>VisualMicroDebugger</DebuggerFlavor>
