@@ -143,10 +143,10 @@ void setup()
   // initialised, which will cause a big intergral term.
   // If you don't do this, you'll see the Romi accelerate away
   // very fast!
-  // LeftSpeedControl.reset();
-  // RightSpeedControl.reset();
-  // left_speed_demand = 5;
-  // right_speed_demand = 5;
+    LeftSpeedControl.reset();
+    RightSpeedControl.reset();
+    left_speed_demand = 5;
+    right_speed_demand = 5;
 
     //Initialise simple scheduler
     initScheduler();
