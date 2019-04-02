@@ -3,7 +3,7 @@
 #include <EEPROM.h>
 
 const byte MAP_RESOLUTION = 25;
-const byte MAP_DEFAULT_FEATURE = '#';
+const int MAP_DEFAULT_FEATURE = '#';
 const int MAP_X=1800;
 const int MAP_Y=1800;
 
@@ -14,10 +14,11 @@ class Mapper
         void printMap();
         void updateMapFeature(byte feature, int y, int x);
         void updateMapFeature(byte feature, float y, float x);
+        byte readEeprom(float x, float y);
         
         int  indexToPose(int i, int map_size, int resolution);
         int  poseToIndex(int x, int map_size, int resolution);
-    
+
     private:
         int X_size;
         int Y_size;
@@ -31,7 +32,7 @@ void Mapper::resetMap()
         for (int j=0;j<MAP_RESOLUTION;j++)
         {
             int eeprom_address = (i*MAP_RESOLUTION)+j;
-            
+
             if (eeprom_address > 1023)
             {
                 Serial.println(F("Error: EEPROM Address greater than 1023"));
@@ -39,7 +40,7 @@ void Mapper::resetMap()
             else
             {
                 EEPROM.update(eeprom_address, MAP_DEFAULT_FEATURE );
-                
+
             }
         }
     }
@@ -62,7 +63,7 @@ void Mapper::printMap()
         }
         Serial.println("");
     }
-  
+
 }
 
 int Mapper::poseToIndex(int x, int map_size, int resolution)
@@ -77,7 +78,7 @@ int Mapper::indexToPose(int i, int map_size, int resolution)
 
 
 void Mapper::updateMapFeature(byte feature, float y, float x) {
-  updateMapFeature( feature, (int)y, (int)x );  
+  updateMapFeature((byte) feature, (int)y, (int)x );
 }
 
 void Mapper::updateMapFeature(byte feature, int y, int x)
@@ -89,9 +90,9 @@ void Mapper::updateMapFeature(byte feature, int y, int x)
     }
 
     int x_index = poseToIndex(x, MAP_X, MAP_RESOLUTION);
-    int y_index = poseToIndex(y, MAP_Y, MAP_RESOLUTION);  
+    int y_index = poseToIndex(y, MAP_Y, MAP_RESOLUTION);
 
-    int eeprom_address = (x_index * MAP_RESOLUTION) + y_index;  
+    int eeprom_address = (x_index * MAP_RESOLUTION) + y_index;
 
     if (eeprom_address > 1023)
     {
@@ -101,9 +102,17 @@ void Mapper::updateMapFeature(byte feature, int y, int x)
     {
         EEPROM.update(eeprom_address, feature);
     }
-        
-
 }
+
+byte Mapper::readEeprom (float x, float y){
+    byte value;
+    int x_index = poseToIndex(x, MAP_X, MAP_RESOLUTION);
+    int y_index = poseToIndex(y, MAP_Y, MAP_RESOLUTION);
+    int eeprom_address = (x_index * MAP_RESOLUTION) + y_index;
+    value = EEPROM.read(eeprom_address);
+    return value;
+}
+
 
 
 #endif

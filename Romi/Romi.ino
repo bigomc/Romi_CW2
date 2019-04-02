@@ -73,6 +73,10 @@ bool use_speed_controller = true;
 float left_speed_demand = 0;
 float right_speed_demand = 0;
 
+//Mapping variables
+unsigned long count_mapping =0;
+bool stop_mapping = false;
+
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * This setup() routine initialises all class instances above and peripherals.   *
@@ -102,7 +106,7 @@ void setup()
   LineRight.calibrate();
 
   //Setup RFID card
-  setupRFID();
+  //setupRFID();
 
   // These functions calibrate the IMU and Magnetometer
   // The magnetometer calibration routine require you to move
@@ -176,7 +180,7 @@ void loop() {
 
   doMovement();
 
-  doMapping();
+  MappingTask();
 
   delay(2);
 }
@@ -191,6 +195,7 @@ void loop() {
  * your Experiment Day 1 baseline test.
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void doMovement() {
+  if (!stop_mapping){ 
 
   // Static means this variable will keep
   // its value on each call from loop()
@@ -225,6 +230,11 @@ void doMovement() {
     left_speed_demand = forward_bias + turn_bias;
     right_speed_demand = forward_bias - turn_bias;
   }
+ }
+ else{
+  left_speed_demand = 0;
+  right_speed_demand = 0;
+ }
 
 }
 
@@ -238,7 +248,7 @@ void doMovement() {
  * for more information on how we are reading and
  * writing to eeprom memory.
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void doMapping() {
+void MappingTask() {
 
   // Read the IR Sensor and determine distance in
   // mm.  Make sure you calibrate your own code!
@@ -246,6 +256,14 @@ void doMapping() {
   // The rationale being:
   // We can't trust very close readings or very far.
   // ...but feel free to investigate this.
+  byte cell_read = Map.readEeprom(Pose.getX(),Pose.getY());
+   
+  if (cell_read != (byte)'O' && cell_read != (byte)'L' && cell_read != (byte)'R'){
+    Map.updateMapFeature((byte)'V',Pose.getY(),Pose.getX());
+   }
+
+
+  //OBSTACLE avoidance
   float distance = DistanceSensor.getDistanceInMM();
   if( distance < 400 && distance > 120 ) {
 
@@ -270,7 +288,7 @@ void doMapping() {
   if( checkForRFID() ) {
 
     // Add card to map encoding.
-    Map.updateMapFeature( (byte)'R', Pose.getY(), Pose.getX() );
+    //Map.updateMapFeature( (byte)'R', Pose.getY(), Pose.getX() );
 
     // you can check the position reference and
     // bearing information of the RFID Card in
@@ -293,4 +311,14 @@ void doMapping() {
   if( (LineCentre.readCalibrated()+ LineLeft.readCalibrated()+ LineRight.readCalibrated())> 300  ) {
       Map.updateMapFeature( (byte)'L', Pose.getY(), Pose.getX() );
   }
+
+  count_mapping ++;
+
+  if (count_mapping > 360){
+    stop_mapping = true;
+    ButtonB.waitForButton();
+    Map.printMap();
+  }
+  
+  
 }
