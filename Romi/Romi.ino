@@ -31,6 +31,8 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 #define BAUD_RATE 115200
 #define SAMPLING_TICK_PERIOD    5
+#define MAX_VELOCITY    3
+#define TIME_LIMIT  60000
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -70,8 +72,8 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 //Use these variables to set the demand of the speed controller
- float left_speed_demand = 3;
- float right_speed_demand = -1;
+ float left_speed_demand;
+ float right_speed_demand;
 
 //Mapping variables
 unsigned long count_mapping =0;
@@ -149,8 +151,8 @@ void setup()
   // very fast!
     LeftSpeedControl.reset();
     RightSpeedControl.reset();
-    left_speed_demand = 5;
-    right_speed_demand = 5;
+    left_speed_demand = 0;
+    right_speed_demand = 0;
 
     count_mapping = millis ();
 
@@ -223,7 +225,7 @@ void doMovement() {
     if( DistanceSensor.getDistanceRaw() > 450 ) {
         forward_bias = 0;
     } else {
-        forward_bias = 5;
+        forward_bias = MAX_VELOCITY;
     }
 
     // Periodically set a random turn.
@@ -261,7 +263,7 @@ void MappingTask() {
     Map.printMap();
   }
 
-  if ((millis() - count_mapping) > 10000){
+  if ((millis() - count_mapping) > TIME_LIMIT){
     Serial.println("Stopping");
     stop_mapping = true;
   }
@@ -328,7 +330,4 @@ void MappingTask() {
   if( (LineCentre.readCalibrated()+ LineLeft.readCalibrated()+ LineRight.readCalibrated())> 300  ) {
       Map.updateMapFeature( (byte)'L', Pose.getY(), Pose.getX() );
   }
-
-
-
 }
