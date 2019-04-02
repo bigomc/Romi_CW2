@@ -6,9 +6,15 @@ SharpIR::SharpIR(byte _pin)
   pin = _pin;
 }
 
+int SharpIR::read() {
+    last_value = analogRead(pin);
+
+    return last_value;
+}
+
 int SharpIR::getDistanceRaw()
 {
-    return analogRead(pin);
+    return last_value;
 }
 
 
@@ -22,7 +28,7 @@ int SharpIR::getDistanceRaw()
 float SharpIR::getDistanceInMM()
 {
 
-    float distance = (float)analogRead( pin );
+    float distance = (float)last_value;
 
     // map this to 0 : 5v range.
     distance *= 0.0048;
