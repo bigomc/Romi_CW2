@@ -1,13 +1,15 @@
 #ifndef _Kinematics
 #define _Kinematics_h
 
+#include <Arduino.h>
+
+#define RAD_PER_COUNT   4.363323129985824
 #define GEAR_RATIO 120.0
 #define COUNTS_PER_SHAFT_REVOLUTION 12.0
 const float WHEEL_RADIUS = 35.0;
 const float WHEEL_DISTANCE = 140; //Corrected to fit calculations below
 const float COUNTS_PER_WHEEL_REVOLUTION = GEAR_RATIO * COUNTS_PER_SHAFT_REVOLUTION;
 const float MM_PER_COUNT = ( 2 * WHEEL_RADIUS * PI ) / COUNTS_PER_WHEEL_REVOLUTION;
-const float RAD_PER_COUNT = ( 2 * PI / COUNTS_PER_WHEEL_REVOLUTION);
 
 class Kinematics
 {

@@ -38,8 +38,8 @@ void Kinematics::update()
     float time_elapsed = millis() - last_update;
     last_update = millis();
 
-    left_angular_velocity = (RAD_PER_COUNT * left_count / time_elapsed);
-    right_angular_velocity = (RAD_PER_COUNT * left_count / time_elapsed);
+    left_angular_velocity = ((RAD_PER_COUNT * left_count) / time_elapsed);
+    right_angular_velocity = ((RAD_PER_COUNT * right_count) / time_elapsed);
 
     if (debug)
     {

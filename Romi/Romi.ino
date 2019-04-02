@@ -179,18 +179,18 @@ void UpdateTask() {
 }
 
 void PrintTask() {
-    Serial.println("Print task");
-	Pose.printPose();
+	//Pose.printPose();
+    Serial.print(Pose.getLeftVelocity());
+    Serial.print(" ");
+    Serial.println(Pose.getRightVelocity());
 }
 
 void ControlSpeed() {
-	Serial.println("ControlSpeed task");
 	left_speed_control_signal = LeftSpeedControl.update(left_speed_demand, Pose.getLeftVelocity());
 	right_speed_control_signal = RightSpeedControl.update(right_speed_demand, Pose.getRightVelocity());
 }
 
 void MoveMotors() {
-	Serial.println("Move Motors Task");
 	LeftMotor.setPower(left_speed_control_signal);
 	RightMotor.setPower(right_speed_control_signal);
 }
