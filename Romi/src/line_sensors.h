@@ -16,11 +16,12 @@ class LineSensor
         void calibrate();
         int  readRaw();
         float  readCalibrated();
-    
-    private:
+		int read();
 
+    private:
+		int last_value;
         float calibration_offset=0;
         int pin;
-    
+
 };
 #endif

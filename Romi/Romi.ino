@@ -161,6 +161,8 @@ void setup()
 
     createTask(UpdateTask, SAMPLING_TICK_PERIOD);
 	createTask(ControlSpeed, 10);
+    createTask(SensorsTask, 20);
+    createTask(doMovement, 20);
     createTask(doMovement, 20);
     createTask(SensorsTask, 20);
     createTask(doMovement, 20);
@@ -190,6 +192,12 @@ void SensorsTask() {
     // latency and speeds up the program execution
 
     DistanceSensor.read();
+<<<<<<< HEAD
+=======
+    LineCentre.read();
+    LineLeft.read();
+    LineRight.read();
+>>>>>>> Improved proximity sensor and task for reading sensors
 }
 
 void PrintTask() {
@@ -198,7 +206,18 @@ void PrintTask() {
     Serial.print(" ");
     Serial.print(Pose.getRightVelocity());
     Serial.print(" ");
+<<<<<<< HEAD
     Serial.println(DistanceSensor.getDistanceInMM());
+=======
+    Serial.print(DistanceSensor.getDistanceInMM());
+    Serial.print(" [");
+    Serial.print(LineLeft.readCalibrated());
+    Serial.print(", ");
+    Serial.print(LineCentre.readCalibrated());
+    Serial.print(", ");
+    Serial.print(LineRight.readCalibrated());
+    Serial.println("]");
+>>>>>>> Improved proximity sensor and task for reading sensors
 }
 
 void ControlSpeed() {
