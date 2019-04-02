@@ -8,7 +8,6 @@ SharpIR::SharpIR(byte _pin)
 
 int SharpIR::read() {
     last_value = analogRead(pin);
-
     return last_value;
 }
 

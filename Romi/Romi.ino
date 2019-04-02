@@ -72,12 +72,17 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 //Use these variables to set the demand of the speed controller
+<<<<<<< HEAD
  float left_speed_demand;
  float right_speed_demand;
 
 //Mapping variables
 unsigned long count_mapping =0;
 bool stop_mapping = false;
+=======
+ float left_speed_demand = 0;
+ float right_speed_demand = 0;
+>>>>>>> nothing relevant, just test
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -130,13 +135,13 @@ void setup()
   // the current map.
   //
   // !!! A second button press will erase the map !!!
-  ButtonB.waitForButton();
-  Map.printMap();
+  //ButtonB.waitForButton();
+  //Map.printMap();
 
-  // Watch for second button press, then begin autonomous mode.
-  ButtonB.waitForButton();
-  Serial.println("Map Erased - Mapping Started");
-  Map.resetMap();
+  //// Watch for second button press, then begin autonomous mode.
+  //ButtonB.waitForButton();
+  //Serial.println("Map Erased - Mapping Started");
+  //Map.resetMap();
 
   // Your extra setup code is best placed here:
   // ...
@@ -151,23 +156,32 @@ void setup()
   // very fast!
     LeftSpeedControl.reset();
     RightSpeedControl.reset();
+<<<<<<< HEAD
     left_speed_demand = 0;
     right_speed_demand = 0;
 
     count_mapping = millis ();
+=======
+    //left_speed_demand = 5;
+    //right_speed_demand = 5;
+>>>>>>> nothing relevant, just test
 
     //Initialise simple scheduler
     initScheduler();
 
-    createTask(UpdateTask, SAMPLING_TICK_PERIOD);
-	createTask(ControlSpeed, 10);
+	createTask(UpdateTask, SAMPLING_TICK_PERIOD);
     createTask(SensorsTask, 20);
     createTask(doMovement, 20);
+<<<<<<< HEAD
     createTask(doMovement, 20);
     createTask(SensorsTask, 20);
     createTask(doMovement, 20);
     createTask(MappingTask, 50);
+=======
+	createTask(ControlSpeed, 10);
+>>>>>>> nothing relevant, just test
     createTask(PrintTask, 500);
+	//createTask(distance, 10);
 }
 
 
@@ -193,11 +207,17 @@ void SensorsTask() {
 
     DistanceSensor.read();
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     LineCentre.read();
     LineLeft.read();
     LineRight.read();
 >>>>>>> Improved proximity sensor and task for reading sensors
+=======
+    //LineCentre.read();
+    //LineLeft.read();
+    //LineRight.read();
+>>>>>>> nothing relevant, just test
 }
 
 void PrintTask() {
@@ -232,6 +252,13 @@ void ControlSpeed() {
     }
 }
 
+
+void distance() {
+	float distance;
+	DistanceSensor.read();
+	distance = DistanceSensor.getDistanceRaw();
+}
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * We have implemented a random walk behaviour for you
  * with a *very* basic obstacle avoidance behaviour.
@@ -242,6 +269,7 @@ void ControlSpeed() {
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void doMovement() {
 
+<<<<<<< HEAD
     // Static means this variable will keep
     // its value on each call from loop()
     static unsigned long walk_update = millis();
@@ -275,6 +303,43 @@ void doMovement() {
     }
  }
 
+=======
+  // Static means this variable will keep
+  // its value on each call from loop()
+  static unsigned long walk_update = millis();
+
+  // used to control the forward and turn
+  // speeds of the robot.
+  float forward_bias;
+  float turn_bias;
+
+  // Check if we are about to collide.  If so,
+  // zero forward speed
+  if( DistanceSensor.getDistanceRaw() > 450 ) {
+    forward_bias = 0;
+  } else {
+    forward_bias = 3;
+  }
+
+  // Periodically set a random turn.
+  // Here, gaussian means we most often drive
+  // forwards, and occasionally make a big turn.
+  if( millis() - walk_update > 500 ) {
+    walk_update = millis();
+
+    // randGaussian(mean, sd).  utils.h
+    turn_bias = randGaussian(0, 3);
+
+    // Setting a speed demand with these variables
+    // is automatically captured by a speed PID
+    // controller in timer3 ISR. Check interrupts.h
+    // for more information.
+    left_speed_demand = forward_bias + turn_bias;
+    right_speed_demand = forward_bias - turn_bias;
+  }
+
+}
+>>>>>>> nothing relevant, just test
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
