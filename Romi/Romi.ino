@@ -70,8 +70,8 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 //Use these variables to set the demand of the speed controller
- float left_speed_demand = 3;
- float right_speed_demand = -1;
+ float left_speed_demand = 0;
+ float right_speed_demand = 0;
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -124,13 +124,13 @@ void setup()
   // the current map.
   //
   // !!! A second button press will erase the map !!!
-  ButtonB.waitForButton();
-  Map.printMap();
+  //ButtonB.waitForButton();
+  //Map.printMap();
 
-  // Watch for second button press, then begin autonomous mode.
-  ButtonB.waitForButton();
-  Serial.println("Map Erased - Mapping Started");
-  Map.resetMap();
+  //// Watch for second button press, then begin autonomous mode.
+  //ButtonB.waitForButton();
+  //Serial.println("Map Erased - Mapping Started");
+  //Map.resetMap();
 
   // Your extra setup code is best placed here:
   // ...
@@ -145,17 +145,18 @@ void setup()
   // very fast!
     LeftSpeedControl.reset();
     RightSpeedControl.reset();
-    left_speed_demand = 5;
-    right_speed_demand = 5;
+    //left_speed_demand = 5;
+    //right_speed_demand = 5;
 
     //Initialise simple scheduler
     initScheduler();
 
-    createTask(UpdateTask, SAMPLING_TICK_PERIOD);
-	createTask(ControlSpeed, 10);
+	createTask(UpdateTask, SAMPLING_TICK_PERIOD);
     createTask(SensorsTask, 20);
     createTask(doMovement, 20);
+	createTask(ControlSpeed, 10);
     createTask(PrintTask, 500);
+	//createTask(distance, 10);
 }
 
 
@@ -180,9 +181,9 @@ void SensorsTask() {
     // latency and speeds up the program execution
 
     DistanceSensor.read();
-    LineCentre.read();
-    LineLeft.read();
-    LineRight.read();
+    //LineCentre.read();
+    //LineLeft.read();
+    //LineRight.read();
 }
 
 void PrintTask() {
@@ -209,6 +210,13 @@ void ControlSpeed() {
     RightMotor.setPower(right_speed_control_signal);
 }
 
+
+void distance() {
+	float distance;
+	DistanceSensor.read();
+	distance = DistanceSensor.getDistanceRaw();
+}
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * We have implemented a random walk behaviour for you
  * with a *very* basic obstacle avoidance behaviour.
@@ -233,7 +241,7 @@ void doMovement() {
   if( DistanceSensor.getDistanceRaw() > 450 ) {
     forward_bias = 0;
   } else {
-    forward_bias = 5;
+    forward_bias = 3;
   }
 
   // Periodically set a random turn.
@@ -243,7 +251,7 @@ void doMovement() {
     walk_update = millis();
 
     // randGaussian(mean, sd).  utils.h
-    turn_bias = randGaussian(0, 6.5 );
+    turn_bias = randGaussian(0, 3);
 
     // Setting a speed demand with these variables
     // is automatically captured by a speed PID
