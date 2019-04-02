@@ -33,6 +33,7 @@
 #define SAMPLING_TICK_PERIOD    5
 #define MAX_VELOCITY    3
 #define TIME_LIMIT  60000
+#define LINE_CONFIDENCE 70
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -72,8 +73,8 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 //Use these variables to set the demand of the speed controller
- float left_speed_demand;
- float right_speed_demand;
+ float left_speed_demand = 0;
+ float right_speed_demand = 0;;
 
 //Mapping variables
 unsigned long count_mapping =0;
@@ -94,11 +95,9 @@ void setup()
   // LeftSpeedControl.setMax(100);
   // RightSpeedControl.setMax(100);
 
-  // For this example, we'll calibrate only the
-  // centre sensor.  You may wish to use more.
-  LineCentre.calibrate();
-  LineLeft.calibrate();
-  LineRight.calibrate();
+  // Initialise Serial communication
+  Serial.begin( BAUD_RATE );
+  delay(1000);
 
   //Setup RFID card
   //setupRFID();
@@ -121,22 +120,25 @@ void setup()
   randomSeed(analogRead(A0));
 
 
-  // Initialise Serial communication
-  Serial.begin( BAUD_RATE );
-  delay(1000);
   Serial.println("Board Reset");
 
   // Romi will wait for you to press a button and then print
   // the current map.
   //
   // !!! A second button press will erase the map !!!
-  //ButtonB.waitForButton();
-  //Map.printMap();
+  ButtonB.waitForButton();
+
+  Serial.println("Calibrating line sensors");
+  LineCentre.calibrate();
+  LineLeft.calibrate();
+  LineRight.calibrate();
+
+  Map.resetMap();
+  Map.printMap();
+  Serial.println("Map Erased - Waiting for start");
 
   //// Watch for second button press, then begin autonomous mode.
-  //ButtonB.waitForButton();
-  //Serial.println("Map Erased - Mapping Started");
-  //Map.resetMap();
+  ButtonB.waitForButton();
 
   // Your extra setup code is best placed here:
   // ...
@@ -151,24 +153,18 @@ void setup()
   // very fast!
     LeftSpeedControl.reset();
     RightSpeedControl.reset();
-    left_speed_demand = 0;
-    right_speed_demand = 0;
-
-    count_mapping = millis ();
 
     //Initialise simple scheduler
     initScheduler();
 
 	createTask(UpdateTask, SAMPLING_TICK_PERIOD);
-    createTask(SensorsTask, 20);
-    createTask(doMovement, 20);
-	createTask(ControlSpeed, 10);
+    createTask(ControlSpeed, 10);
     createTask(doMovement, 20);
     createTask(SensorsTask, 20);
-    createTask(doMovement, 20);
     createTask(MappingTask, 50);
     createTask(PrintTask, 500);
-	//createTask(distance, 10);
+
+    count_mapping = millis ();
 }
 
 
@@ -359,7 +355,7 @@ void MappingTask() {
   // Basic uncalibrated check for a line.
   // Students can do better than this after CW1 ;)
   // Condition will depend on calibration method, the one below worked for my Romi using static calibration
-  if( (LineCentre.readCalibrated()+ LineLeft.readCalibrated()+ LineRight.readCalibrated())> 300  ) {
+  if( (LineCentre.readCalibrated() + LineLeft.readCalibrated() + LineRight.readCalibrated()) > LINE_CONFIDENCE  ) {
       Map.updateMapFeature( (byte)'L', Pose.getY(), Pose.getX() );
   }
 }
