@@ -152,12 +152,16 @@ void setup()
     left_speed_demand = 5;
     right_speed_demand = 5;
 
+    count_mapping = millis ();
+
     //Initialise simple scheduler
     initScheduler();
 
     createTask(UpdateTask, SAMPLING_TICK_PERIOD);
     createTask(PrintTask, 500);
 	  createTask(ControlSpeed, 10);
+    createTask(doMovement, 20);
+    createTask(MappingTask, 50);
 }
 
 
@@ -182,13 +186,17 @@ void PrintTask() {
     Serial.print(" ");
     Serial.println(Pose.getRightVelocity());
 }
-  
+
 void ControlSpeed() {
+  if(!stop_mapping){
     float left_speed_control_signal = LeftSpeedControl.update(left_speed_demand, Pose.getLeftVelocity());
     float right_speed_control_signal = RightSpeedControl.update(right_speed_demand, Pose.getRightVelocity());
-
     LeftMotor.setPower(left_speed_control_signal);
     RightMotor.setPower(right_speed_control_signal);
+  } else{
+      LeftMotor.setPower(0);
+      RightMotor.setPower(0);
+    }
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -200,7 +208,6 @@ void ControlSpeed() {
  * your Experiment Day 1 baseline test.
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void doMovement() {
-  if (!stop_mapping){ 
 
   // Static means this variable will keep
   // its value on each call from loop()
@@ -224,24 +231,18 @@ void doMovement() {
   // forwards, and occasionally make a big turn.
   if( millis() - walk_update > 500 ) {
     walk_update = millis();
-
     // randGaussian(mean, sd).  utils.h
     turn_bias = randGaussian(0, 6.5 );
-
     // Setting a speed demand with these variables
     // is automatically captured by a speed PID
     // controller in timer3 ISR. Check interrupts.h
     // for more information.
+  }
     left_speed_demand = forward_bias + turn_bias;
     right_speed_demand = forward_bias - turn_bias;
-  }
- }
- else{
-  left_speed_demand = 0;
-  right_speed_demand = 0;
+
  }
 
-}
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -255,6 +256,18 @@ void doMovement() {
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void MappingTask() {
 
+
+  if (stop_mapping && (Pose.getLeftVelocity() == 0) && (Pose.getRightVelocity() == 0)){
+    ButtonB.waitForButton();
+    Map.printMap();
+  }
+
+  if ((millis() - count_mapping) > 10000){
+    Serial.println("Stopping");
+    stop_mapping = true;
+  }
+
+
   // Read the IR Sensor and determine distance in
   // mm.  Make sure you calibrate your own code!
   // We threshold a reading between 40mm and 12mm.
@@ -262,7 +275,7 @@ void MappingTask() {
   // We can't trust very close readings or very far.
   // ...but feel free to investigate this.
   byte cell_read = Map.readEeprom(Pose.getX(),Pose.getY());
-   
+
   if (cell_read != (byte)'O' && cell_read != (byte)'L' && cell_read != (byte)'R'){
     Map.updateMapFeature((byte)'V',Pose.getY(),Pose.getX());
    }
@@ -317,13 +330,6 @@ void MappingTask() {
       Map.updateMapFeature( (byte)'L', Pose.getY(), Pose.getX() );
   }
 
-  count_mapping ++;
 
-  if (count_mapping > 360){
-    stop_mapping = true;
-    ButtonB.waitForButton();
-    Map.printMap();
-  }
-  
-  
+
 }
