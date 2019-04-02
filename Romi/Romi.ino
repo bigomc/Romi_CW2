@@ -222,13 +222,6 @@ void ControlSpeed() {
     }
 }
 
-
-void distance() {
-	float distance;
-	DistanceSensor.read();
-	distance = DistanceSensor.getDistanceRaw();
-}
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * We have implemented a random walk behaviour for you
  * with a *very* basic obstacle avoidance behaviour.
