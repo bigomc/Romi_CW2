@@ -1,0 +1,7 @@
+**/Release
+**/Debug
+**/__vm
+**/.vs
+**/*.rc
+**/*.sln
+**/*.vcxproj*
