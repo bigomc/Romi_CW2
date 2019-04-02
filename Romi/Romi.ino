@@ -152,8 +152,10 @@ void setup()
     initScheduler();
 
     createTask(UpdateTask, SAMPLING_TICK_PERIOD);
-    createTask(PrintTask, 500);
 	createTask(ControlSpeed, 10);
+    createTask(SensorsTask, 20);
+    createTask(doMovement, 20);
+    createTask(PrintTask, 500);
 }
 
 
@@ -172,11 +174,31 @@ void UpdateTask() {
     Pose.update();
 }
 
+void SensorsTask() {
+    // The aim of this task is to perform all sensor readings and only return
+    // the real value when needed instead of read everytime, this reduces
+    // latency and speeds up the program execution
+
+    DistanceSensor.read();
+    LineCentre.read();
+    LineLeft.read();
+    LineRight.read();
+}
+
 void PrintTask() {
 	//Pose.printPose();
     Serial.print(Pose.getLeftVelocity());
     Serial.print(" ");
-    Serial.println(Pose.getRightVelocity());
+    Serial.print(Pose.getRightVelocity());
+    Serial.print(" ");
+    Serial.print(DistanceSensor.getDistanceInMM());
+    Serial.print(" [");
+    Serial.print(LineLeft.readCalibrated());
+    Serial.print(", ");
+    Serial.print(LineCentre.readCalibrated());
+    Serial.print(", ");
+    Serial.print(LineRight.readCalibrated());
+    Serial.println("]");
 }
 
 void ControlSpeed() {
