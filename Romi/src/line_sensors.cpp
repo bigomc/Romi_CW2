@@ -10,10 +10,15 @@ LineSensor::LineSensor(int line_pin)
 
 }
 
+int LineSensor::read() {
+    last_value = analogRead(pin);
+
+    return last_value;
+}
 
 int LineSensor::readRaw()
 {
-	return analogRead(pin);
+	return last_value;
 }
 
 
@@ -36,5 +41,8 @@ void LineSensor::calibrate()
 
 float LineSensor::readCalibrated()
 {
-	return (analogRead(pin) - calibration_offset);
+	int p = map(last_value, calibration_offset, BLACK_THRESHOLD, 0, 100);
+	p = min(100, max(0, p));
+
+	return p;
 }

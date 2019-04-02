@@ -7,6 +7,8 @@
 	#include "WProgram.h"
 #endif
 
+#define BLACK_THRESHOLD 857
+
 const int NUM_CALIBRATIONS = 20;
 
 class LineSensor
@@ -16,11 +18,12 @@ class LineSensor
         void calibrate();
         int  readRaw();
         float  readCalibrated();
-    
-    private:
+		int read();
 
+    private:
+		int last_value;
         float calibration_offset=0;
         int pin;
-    
+
 };
 #endif

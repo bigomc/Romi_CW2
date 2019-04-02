@@ -7,12 +7,14 @@ class SharpIR
 {
     public:
         SharpIR(byte pin);
+        int read();
         int  getDistanceRaw();
         float  getDistanceInMM();
         void calibrate();
 
     private:
         byte pin;
+        int last_value;
 };
 
 #endif
