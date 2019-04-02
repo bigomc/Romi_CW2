@@ -7,6 +7,8 @@
 	#include "WProgram.h"
 #endif
 
+#define BLACK_THRESHOLD 857
+
 const int NUM_CALIBRATIONS = 20;
 
 class LineSensor

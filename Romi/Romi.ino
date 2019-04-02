@@ -31,8 +31,12 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 #define BAUD_RATE 115200
 #define SAMPLING_TICK_PERIOD    5
+<<<<<<< HEAD
 #define MAX_VELOCITY    3
 #define TIME_LIMIT  60000
+=======
+#define LINE_CONFIDENCE 70
+>>>>>>> Improvement of line sensors
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -95,15 +99,18 @@ bool stop_mapping = false;
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void setup()
 {
-  //Set speed control maximum outputs to match motor
-  // LeftSpeedControl.setMax(100);
-  // RightSpeedControl.setMax(100);
+    //Set speed control maximum outputs to match motor
+    // LeftSpeedControl.setMax(100);
+    // RightSpeedControl.setMax(100);
 
-  // For this example, we'll calibrate only the
-  // centre sensor.  You may wish to use more.
-  LineCentre.calibrate();
-  LineLeft.calibrate();
-  LineRight.calibrate();
+    // Initialise Serial communication
+    Serial.begin( BAUD_RATE );
+    delay(1000);
+
+    Serial.println("Calibrating line sensors");
+    LineCentre.calibrate();
+    LineLeft.calibrate();
+    LineRight.calibrate();
 
   //Setup RFID card
   //setupRFID();
@@ -125,10 +132,6 @@ void setup()
   // from A0, which should itself be quite random.
   randomSeed(analogRead(A0));
 
-
-  // Initialise Serial communication
-  Serial.begin( BAUD_RATE );
-  delay(1000);
   Serial.println("Board Reset");
 
   // Romi will wait for you to press a button and then print
@@ -171,6 +174,7 @@ void setup()
 
 	createTask(UpdateTask, SAMPLING_TICK_PERIOD);
     createTask(SensorsTask, 20);
+<<<<<<< HEAD
     createTask(doMovement, 20);
 <<<<<<< HEAD
     createTask(doMovement, 20);
@@ -180,8 +184,11 @@ void setup()
 =======
 	createTask(ControlSpeed, 10);
 >>>>>>> nothing relevant, just test
+=======
+    //createTask(doMovement, 20);
+	//createTask(ControlSpeed, 10);
+>>>>>>> Improvement of line sensors
     createTask(PrintTask, 500);
-	//createTask(distance, 10);
 }
 
 
@@ -208,6 +215,7 @@ void SensorsTask() {
     DistanceSensor.read();
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     LineCentre.read();
     LineLeft.read();
@@ -218,6 +226,11 @@ void SensorsTask() {
     //LineLeft.read();
     //LineRight.read();
 >>>>>>> nothing relevant, just test
+=======
+    LineCentre.read();
+    LineLeft.read();
+    LineRight.read();
+>>>>>>> Improvement of line sensors
 }
 
 void PrintTask() {
@@ -423,7 +436,7 @@ void MappingTask() {
   // Basic uncalibrated check for a line.
   // Students can do better than this after CW1 ;)
   // Condition will depend on calibration method, the one below worked for my Romi using static calibration
-  if( (LineCentre.readCalibrated()+ LineLeft.readCalibrated()+ LineRight.readCalibrated())> 300  ) {
+  if( (LineCentre.readCalibrated() + LineLeft.readCalibrated() + LineRight.readCalibrated()) > LINE_CONFIDENCE  ) {
       Map.updateMapFeature( (byte)'L', Pose.getY(), Pose.getX() );
   }
 }

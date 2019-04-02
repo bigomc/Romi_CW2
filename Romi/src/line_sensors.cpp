@@ -41,5 +41,8 @@ void LineSensor::calibrate()
 
 float LineSensor::readCalibrated()
 {
-	return (last_value - calibration_offset);
+	int p = map(last_value, calibration_offset, BLACK_THRESHOLD, 0, 100);
+	p = min(100, max(0, p));
+
+	return p;
 }
