@@ -159,7 +159,7 @@ void setup()
 
     createTask(UpdateTask, SAMPLING_TICK_PERIOD);
     createTask(PrintTask, 500);
-	  createTask(ControlSpeed, 10);
+	createTask(ControlSpeed, 10);
     createTask(doMovement, 20);
     createTask(MappingTask, 50);
 }
@@ -188,14 +188,14 @@ void PrintTask() {
 }
 
 void ControlSpeed() {
-  if(!stop_mapping){
-    float left_speed_control_signal = LeftSpeedControl.update(left_speed_demand, Pose.getLeftVelocity());
-    float right_speed_control_signal = RightSpeedControl.update(right_speed_demand, Pose.getRightVelocity());
-    LeftMotor.setPower(left_speed_control_signal);
-    RightMotor.setPower(right_speed_control_signal);
-  } else{
-      LeftMotor.setPower(0);
-      RightMotor.setPower(0);
+    if(!stop_mapping){
+        float left_speed_control_signal = LeftSpeedControl.update(left_speed_demand, Pose.getLeftVelocity());
+        float right_speed_control_signal = RightSpeedControl.update(right_speed_demand, Pose.getRightVelocity());
+        LeftMotor.setPower(left_speed_control_signal);
+        RightMotor.setPower(right_speed_control_signal);
+    } else{
+        LeftMotor.setPower(0);
+        RightMotor.setPower(0);
     }
 }
 
@@ -209,38 +209,37 @@ void ControlSpeed() {
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void doMovement() {
 
-  // Static means this variable will keep
-  // its value on each call from loop()
-  static unsigned long walk_update = millis();
+    // Static means this variable will keep
+    // its value on each call from loop()
+    static unsigned long walk_update = millis();
 
-  // used to control the forward and turn
-  // speeds of the robot.
-  float forward_bias;
-  float turn_bias;
+    // used to control the forward and turn
+    // speeds of the robot.
+    float forward_bias;
+    float turn_bias;
 
-  // Check if we are about to collide.  If so,
-  // zero forward speed
-  if( DistanceSensor.getDistanceRaw() > 450 ) {
-    forward_bias = 0;
-  } else {
-    forward_bias = 5;
-  }
+    // Check if we are about to collide.  If so,
+    // zero forward speed
+    if( DistanceSensor.getDistanceRaw() > 450 ) {
+        forward_bias = 0;
+    } else {
+        forward_bias = 5;
+    }
 
-  // Periodically set a random turn.
-  // Here, gaussian means we most often drive
-  // forwards, and occasionally make a big turn.
-  if( millis() - walk_update > 500 ) {
-    walk_update = millis();
-    // randGaussian(mean, sd).  utils.h
-    turn_bias = randGaussian(0, 6.5 );
-    // Setting a speed demand with these variables
-    // is automatically captured by a speed PID
-    // controller in timer3 ISR. Check interrupts.h
-    // for more information.
-  }
-    left_speed_demand = forward_bias + turn_bias;
-    right_speed_demand = forward_bias - turn_bias;
-
+    // Periodically set a random turn.
+    // Here, gaussian means we most often drive
+    // forwards, and occasionally make a big turn.
+    if( millis() - walk_update > 500 ) {
+        walk_update = millis();
+        // randGaussian(mean, sd).  utils.h
+        turn_bias = randGaussian(0, 6.5 );
+        // Setting a speed demand with these variables
+        // is automatically captured by a speed PID
+        // controller in timer3 ISR. Check interrupts.h
+        // for more information.
+        left_speed_demand = forward_bias + turn_bias;
+        right_speed_demand = forward_bias - turn_bias;
+    }
  }
 
 
@@ -306,7 +305,7 @@ void MappingTask() {
   if( checkForRFID() ) {
 
     // Add card to map encoding.
-    //Map.updateMapFeature( (byte)'R', Pose.getY(), Pose.getX() );
+    Map.updateMapFeature( (byte)'R', Pose.getY(), Pose.getX() );
 
     // you can check the position reference and
     // bearing information of the RFID Card in

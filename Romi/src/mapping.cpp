@@ -1,7 +1,7 @@
 #include "mapping.h"
 
 const byte MAP_RESOLUTION = 25;
-const int MAP_DEFAULT_FEATURE = '#';
+const byte MAP_DEFAULT_FEATURE = '#';
 const int MAP_X=1800;
 const int MAP_Y=1800;
 
@@ -59,7 +59,7 @@ int Mapper::indexToPose(int i, int map_size, int resolution)
 
 
 void Mapper::updateMapFeature(byte feature, float y, float x) {
-  updateMapFeature((byte) feature, (int)y, (int)x );
+  updateMapFeature( feature, (int)y, (int)x );
 }
 
 void Mapper::updateMapFeature(byte feature, int y, int x)
