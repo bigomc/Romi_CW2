@@ -31,12 +31,8 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 #define BAUD_RATE 115200
 #define SAMPLING_TICK_PERIOD    5
-<<<<<<< HEAD
 #define MAX_VELOCITY    3
 #define TIME_LIMIT  60000
-=======
-#define LINE_CONFIDENCE 70
->>>>>>> Improvement of line sensors
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -76,17 +72,12 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 //Use these variables to set the demand of the speed controller
-<<<<<<< HEAD
  float left_speed_demand;
  float right_speed_demand;
 
 //Mapping variables
 unsigned long count_mapping =0;
 bool stop_mapping = false;
-=======
- float left_speed_demand = 0;
- float right_speed_demand = 0;
->>>>>>> nothing relevant, just test
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -99,18 +90,15 @@ bool stop_mapping = false;
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void setup()
 {
-    //Set speed control maximum outputs to match motor
-    // LeftSpeedControl.setMax(100);
-    // RightSpeedControl.setMax(100);
+  //Set speed control maximum outputs to match motor
+  // LeftSpeedControl.setMax(100);
+  // RightSpeedControl.setMax(100);
 
-    // Initialise Serial communication
-    Serial.begin( BAUD_RATE );
-    delay(1000);
-
-    Serial.println("Calibrating line sensors");
-    LineCentre.calibrate();
-    LineLeft.calibrate();
-    LineRight.calibrate();
+  // For this example, we'll calibrate only the
+  // centre sensor.  You may wish to use more.
+  LineCentre.calibrate();
+  LineLeft.calibrate();
+  LineRight.calibrate();
 
   //Setup RFID card
   //setupRFID();
@@ -132,6 +120,10 @@ void setup()
   // from A0, which should itself be quite random.
   randomSeed(analogRead(A0));
 
+
+  // Initialise Serial communication
+  Serial.begin( BAUD_RATE );
+  delay(1000);
   Serial.println("Board Reset");
 
   // Romi will wait for you to press a button and then print
@@ -159,36 +151,24 @@ void setup()
   // very fast!
     LeftSpeedControl.reset();
     RightSpeedControl.reset();
-<<<<<<< HEAD
     left_speed_demand = 0;
     right_speed_demand = 0;
 
     count_mapping = millis ();
-=======
-    //left_speed_demand = 5;
-    //right_speed_demand = 5;
->>>>>>> nothing relevant, just test
 
     //Initialise simple scheduler
     initScheduler();
 
 	createTask(UpdateTask, SAMPLING_TICK_PERIOD);
     createTask(SensorsTask, 20);
-<<<<<<< HEAD
     createTask(doMovement, 20);
-<<<<<<< HEAD
+	createTask(ControlSpeed, 10);
     createTask(doMovement, 20);
     createTask(SensorsTask, 20);
     createTask(doMovement, 20);
     createTask(MappingTask, 50);
-=======
-	createTask(ControlSpeed, 10);
->>>>>>> nothing relevant, just test
-=======
-    //createTask(doMovement, 20);
-	//createTask(ControlSpeed, 10);
->>>>>>> Improvement of line sensors
     createTask(PrintTask, 500);
+	//createTask(distance, 10);
 }
 
 
@@ -213,24 +193,9 @@ void SensorsTask() {
     // latency and speeds up the program execution
 
     DistanceSensor.read();
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
     LineCentre.read();
     LineLeft.read();
     LineRight.read();
->>>>>>> Improved proximity sensor and task for reading sensors
-=======
-    //LineCentre.read();
-    //LineLeft.read();
-    //LineRight.read();
->>>>>>> nothing relevant, just test
-=======
-    LineCentre.read();
-    LineLeft.read();
-    LineRight.read();
->>>>>>> Improvement of line sensors
 }
 
 void PrintTask() {
@@ -239,9 +204,6 @@ void PrintTask() {
     Serial.print(" ");
     Serial.print(Pose.getRightVelocity());
     Serial.print(" ");
-<<<<<<< HEAD
-    Serial.println(DistanceSensor.getDistanceInMM());
-=======
     Serial.print(DistanceSensor.getDistanceInMM());
     Serial.print(" [");
     Serial.print(LineLeft.readCalibrated());
@@ -250,7 +212,6 @@ void PrintTask() {
     Serial.print(", ");
     Serial.print(LineRight.readCalibrated());
     Serial.println("]");
->>>>>>> Improved proximity sensor and task for reading sensors
 }
 
 void ControlSpeed() {
@@ -282,7 +243,6 @@ void distance() {
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void doMovement() {
 
-<<<<<<< HEAD
     // Static means this variable will keep
     // its value on each call from loop()
     static unsigned long walk_update = millis();
@@ -316,43 +276,6 @@ void doMovement() {
     }
  }
 
-=======
-  // Static means this variable will keep
-  // its value on each call from loop()
-  static unsigned long walk_update = millis();
-
-  // used to control the forward and turn
-  // speeds of the robot.
-  float forward_bias;
-  float turn_bias;
-
-  // Check if we are about to collide.  If so,
-  // zero forward speed
-  if( DistanceSensor.getDistanceRaw() > 450 ) {
-    forward_bias = 0;
-  } else {
-    forward_bias = 3;
-  }
-
-  // Periodically set a random turn.
-  // Here, gaussian means we most often drive
-  // forwards, and occasionally make a big turn.
-  if( millis() - walk_update > 500 ) {
-    walk_update = millis();
-
-    // randGaussian(mean, sd).  utils.h
-    turn_bias = randGaussian(0, 3);
-
-    // Setting a speed demand with these variables
-    // is automatically captured by a speed PID
-    // controller in timer3 ISR. Check interrupts.h
-    // for more information.
-    left_speed_demand = forward_bias + turn_bias;
-    right_speed_demand = forward_bias - turn_bias;
-  }
-
-}
->>>>>>> nothing relevant, just test
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -436,7 +359,7 @@ void MappingTask() {
   // Basic uncalibrated check for a line.
   // Students can do better than this after CW1 ;)
   // Condition will depend on calibration method, the one below worked for my Romi using static calibration
-  if( (LineCentre.readCalibrated() + LineLeft.readCalibrated() + LineRight.readCalibrated()) > LINE_CONFIDENCE  ) {
+  if( (LineCentre.readCalibrated()+ LineLeft.readCalibrated()+ LineRight.readCalibrated())> 300  ) {
       Map.updateMapFeature( (byte)'L', Pose.getY(), Pose.getX() );
   }
 }
