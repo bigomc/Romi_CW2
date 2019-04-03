@@ -32,7 +32,7 @@
 #define BAUD_RATE 115200
 #define SAMPLING_TICK_PERIOD    5
 #define MAX_VELOCITY    3
-#define TIME_LIMIT  60000
+#define TIME_LIMIT  20000
 #define LINE_CONFIDENCE 70
 
 
@@ -255,7 +255,7 @@ void doMovement() {
     if( millis() - walk_update > 500 ) {
         walk_update = millis();
         // randGaussian(mean, sd).  utils.h
-        turn_bias = randGaussian(0, 6.5 );
+        turn_bias = randGaussian(0, 3 );
         // Setting a speed demand with these variables
         // is automatically captured by a speed PID
         // controller in timer3 ISR. Check interrupts.h
