@@ -32,7 +32,7 @@
 #define BAUD_RATE 115200
 #define SAMPLING_TICK_PERIOD    5
 #define MAX_VELOCITY    3
-#define TIME_LIMIT  20000
+#define TIME_LIMIT  60000
 #define LINE_CONFIDENCE 70
 
 
@@ -200,7 +200,7 @@ void PrintTask() {
     Serial.print(" ");
     Serial.print(Pose.getRightVelocity());
     Serial.print(" ");
-    Serial.print(DistanceSensor.getDistanceInMM());
+    Serial.print(DistanceSensor.readCalibrated());
     Serial.print(" [");
     Serial.print(LineLeft.readCalibrated());
     Serial.print(", ");
@@ -243,7 +243,7 @@ void doMovement() {
 
     // Check if we are about to collide.  If so,
     // zero forward speed
-    if( DistanceSensor.getDistanceRaw() > 450 ) {
+    if( DistanceSensor.readRaw() > 450 ) {
         forward_bias = 0;
     } else {
         forward_bias = MAX_VELOCITY;
@@ -304,7 +304,7 @@ void MappingTask() {
 
 
   //OBSTACLE avoidance
-  float distance = DistanceSensor.getDistanceInMM();
+  float distance = DistanceSensor.readCalibrated();
   if( distance < 400 && distance > 120 ) {
 
     // We know the romi has the sensor mounted
