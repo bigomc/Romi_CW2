@@ -1,5 +1,5 @@
-#ifndef _Magentometer
-#define _Magentometer
+#ifndef _Magentometer_h
+#define _Magentometer_h
 
 #include <LIS3MDL.h>
 

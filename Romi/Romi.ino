@@ -99,6 +99,16 @@ void setup()
   Serial.begin( BAUD_RATE );
   delay(1000);
 
+  Serial.println("Board Reset");
+
+  // Romi will wait for you to press a button and then print
+  // the current map.
+  //
+  // !!! A second button press will erase the map !!!
+  ButtonB.waitForButton();
+  Map.printMap();
+  Map.resetMap();
+
   //Setup RFID card
   //setupRFID();
 
@@ -107,35 +117,25 @@ void setup()
   // your robot around  in space.
   // The IMU calibration requires the Romi does not move.
   // See related lab sheets for more information.
-  /*
+  Serial.println("Calibrating Magnetometer");
   Wire.begin();
   Mag.init();
-  Mag.calibrate();
-  Imu.init();
-  Imu.calibrate();
-  */
+  // Mag.calibrate();
+  // Imu.init();
+  // Imu.calibrate();
 
   // Set the random seed for the random number generator
   // from A0, which should itself be quite random.
   randomSeed(analogRead(A0));
 
 
-  Serial.println("Board Reset");
-
-  // Romi will wait for you to press a button and then print
-  // the current map.
-  //
-  // !!! A second button press will erase the map !!!
-  ButtonB.waitForButton();
 
   Serial.println("Calibrating line sensors");
   LineCentre.calibrate();
   LineLeft.calibrate();
   LineRight.calibrate();
 
-  Map.resetMap();
-  Map.printMap();
-  Serial.println("Map Erased - Waiting for start");
+  Serial.println("Waiting for start");
 
   //// Watch for second button press, then begin autonomous mode.
   ButtonB.waitForButton();
