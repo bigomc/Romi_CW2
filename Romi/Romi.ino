@@ -110,29 +110,43 @@ void setup()
   // the current map.
   //
   // !!! A second button press will erase the map !!!
-  ButtonB.waitForButton();
+  //ButtonB.waitForButton();
   Map.printMap();
   Map.resetMap();
 
   //Setup RFID card
   //setupRFID();
 
-  // These functions calibrate the IMU and Magnetometer
+  Serial.println("Calibrating line sensors");
+  LineCentre.calibrate();
+  LineLeft.calibrate();
+  LineRight.calibrate();
+
   // The magnetometer calibration routine require you to move
   // your robot around  in space.
-  // The IMU calibration requires the Romi does not move.
   // See related lab sheets for more information.
-  Serial.println("Calibrating Magnetometer");
+  Serial.println("Initialising Magnetometer");
   Wire.begin();
   Mag.init();
-  // Mag.calibrate();
+  Serial.println("Press button to calibrate Magnetometer");
+  ButtonB.waitForButton();
+  LeftMotor.setPower(40);
+  RightMotor.setPower(-40);
+  Mag.calibrate();
+  LeftMotor.setPower(0);
+  RightMotor.setPower(0);
+
+  // The IMU calibration requires the Romi does not move.
+  // IMU INITIALIZATION GOES HERE
   // Imu.init();
   // Imu.calibrate();
+  // IMU INITIALIZATION GOES HERE
 
   // Set the random seed for the random number generator
   // from A0, which should itself be quite random.
   randomSeed(analogRead(A0));
 
+<<<<<<< master
 
 
   Serial.println("Calibrating line sensors");
@@ -148,6 +162,8 @@ void setup()
   Map.printMap();
   Serial.println("Map Erased - Waiting for start");
 =======
+=======
+>>>>>>> HEAD~0
   Serial.println("Waiting for start");
 >>>>>>> HEAD~1
 
@@ -156,6 +172,7 @@ void setup()
 
   // Your extra setup code is best placed here:
   // ...
+  Mag.setOrientationOffset();
   // ...
   // but not after the following:
 
@@ -207,8 +224,10 @@ void SensorsTask() {
     LineCentre.read();
     LineLeft.read();
     LineRight.read();
+    Mag.readCalibrated();
 }
 
+<<<<<<< master
 void PrintTask(){
 	Pose.printPose();
     //Serial.print(Pose.getLeftVelocity());
@@ -225,6 +244,25 @@ void PrintTask(){
     //Serial.println("]");
     }
 
+=======
+void PrintTask() {
+	//Pose.printPose();
+    Serial.print(Pose.getLeftVelocity());
+    Serial.print(" ");
+    Serial.print(Pose.getRightVelocity());
+    Serial.print(" ");
+    Serial.print(DistanceSensor.readCalibrated());
+    Serial.print(" [");
+    Serial.print(LineLeft.readCalibrated());
+    Serial.print(", ");
+    Serial.print(LineCentre.readCalibrated());
+    Serial.print(", ");
+    Serial.print(LineRight.readCalibrated());
+    Serial.print("] (");
+    Serial.print(Mag.orientation);
+    Serial.println(")");
+}
+>>>>>>> HEAD~0
 
 void ControlSpeed() {
     if(!stop_mapping && !heading){ //

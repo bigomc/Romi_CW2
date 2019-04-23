@@ -27,12 +27,13 @@ void Magnetometer::readRaw()
 void Magnetometer::readCalibrated()
 {
 
-  mag.read();
+    mag.read();
 
-  x = sensitivity * (mag.m.x - x_offset) * x_scale;
-  y = sensitivity * (mag.m.y - y_offset) * y_scale;
-  z = sensitivity * (mag.m.z - z_offset) * z_scale;
+    x = sensitivity * (mag.m.x - x_offset) * x_scale;
+    y = sensitivity * (mag.m.y - y_offset) * y_scale;
+    z = sensitivity * (mag.m.z - z_offset) * z_scale;
 
+    orientation = orientation_offset - atan2(y,x);
 }
 
 void Magnetometer::calibrate()
@@ -48,31 +49,25 @@ void Magnetometer::calibrate()
     delay(50);
   for (int i=0;i<NUM_CALIBRATIONS_MAG;i++)
   {
+        analogWrite(BUZZER_PIN, 10);
+        delay(30);
 
-    mag.read();
+        mag.read();
 
-    x_max = max(x_max, mag.m.x);
-    y_max = max(y_max, mag.m.y);
-    z_max = max(z_max, mag.m.z);
+        x_max = max(x_max, mag.m.x);
+        y_max = max(y_max, mag.m.y);
+        z_max = max(z_max, mag.m.z);
 
-    x_min = min(x_min, mag.m.x);
-    y_min = min(y_min, mag.m.y);
-    z_min = min(z_min, mag.m.z);
+        x_min = min(x_min, mag.m.x);
+        y_min = min(y_min, mag.m.y);
+        z_min = min(z_min, mag.m.z);
 
-    delay(50);
+        analogWrite(BUZZER_PIN, 0);
+
+        delay(50);
   }
 
   calculateOffsets();
-
-  analogWrite(BUZZER_PIN, 10);
-  delay(500);
-  digitalWrite( BUZZER_PIN, LOW );
-  delay(500);
-  analogWrite(BUZZER_PIN, 10);
-  delay(500);
-  digitalWrite( BUZZER_PIN, LOW );
-  delay(500);
-
 }
 
 void Magnetometer::calculateOffsets()
@@ -92,18 +87,17 @@ void Magnetometer::calculateOffsets()
   y_scale = avg_scale / y_scale;
   z_scale = avg_scale / z_scale;
 
-  //Serial.print("X: ");
-  //Serial.print(x_offset);
-  //Serial.print("Y: ");
-  //Serial.print(y_offset);
-  //Serial.print("Z: ");
-  //Serial.println(z_offset);
+}
 
-  //Serial.print("X: ");
-  //Serial.print(x_scale);
-  //Serial.print("Y: ");
-  //Serial.print(y_scale);
-  //Serial.print("Z: ");
-  //Serial.println(z_scale);
+void Magnetometer::setOrientationOffset() {
+    for(int i = 0; i < 10; i++) {
+        mag.read();
 
+        x = sensitivity * (mag.m.x - x_offset) * x_scale;
+        y = sensitivity * (mag.m.y - y_offset) * y_scale;
+        z = sensitivity * (mag.m.z - z_offset) * z_scale;
+
+        orientation_offset += atan2(y,x);
+    }
+    orientation_offset /= 10;
 }
