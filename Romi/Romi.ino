@@ -32,8 +32,8 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 #define BAUD_RATE 115200
 #define SAMPLING_TICK_PERIOD    5
-#define MAX_VELOCITY    5
-#define TIME_LIMIT  35000
+#define MAX_VELOCITY    3
+#define TIME_LIMIT  60000
 #define LINE_CONFIDENCE 70
 
 
@@ -203,7 +203,7 @@ void SensorsTask() {
     LineRight.read();
 }
 
-void PrintTask() {
+void PrintTask(){
 	Pose.printPose();
     //Serial.print(Pose.getLeftVelocity());
     //Serial.print(" ");
@@ -218,6 +218,7 @@ void PrintTask() {
     //Serial.print(LineRight.readCalibrated());
     //Serial.println("]");
     }
+
 
 void ControlSpeed() {
     if(!stop_mapping && !heading){ //
@@ -288,12 +289,6 @@ void doMovement() {
         }
 
       }
-
-
-    //left_speed_demand = forward_bias;
-    //right_speed_demand = forward_bias;
-
-
 
  }
 
@@ -368,9 +363,9 @@ void MappingTask() {
 
 
   //OBSTACLE avoidance
+
   float distance = DistanceSensor.getDistanceInMM();
   if( distance < 400 && distance > 100 ) {
-
     // We know the romi has the sensor mounted
     // to the front of the robot.  Therefore, the
     // sensor faces along Pose.Theta.
