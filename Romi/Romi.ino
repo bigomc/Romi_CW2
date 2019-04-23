@@ -266,7 +266,7 @@ void doMovement() {
     // speeds of the robot.
     float forward_bias;
     float turn_bias;
-    int obs_dect = DistanceSensor.getDistanceRaw();
+    int obs_dect = DistanceSensor.readRaw();
 
     if (!heading){
       forward_bias = MAX_VELOCITY;
@@ -379,7 +379,7 @@ void MappingTask() {
 
     //OBSTACLE avoidance
 
-    float distance = DistanceSensor.getDistanceInMM();
+    float distance = DistanceSensor.readCalibrated();
     if( distance < 400 && distance > 100 ) {
         // We know the romi has the sensor mounted
         // to the front of the robot.  Therefore, the
