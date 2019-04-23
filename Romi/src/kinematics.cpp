@@ -120,3 +120,12 @@ float Kinematics::getLeftVelocity() {
 float Kinematics::getRightVelocity() {
     return right_angular_velocity;
 }
+
+//Function to convert rotation angle in degrees to encoder counts
+long Kinematics::angle2counts(float ang){
+  float ang_r = ang*PI/180; //convert to radians
+  float distance = (ang_r*WHEEL_DISTANCE)/2; //value of equivalent rotation distance in mm - arc length
+  float count_f = distance/MM_PER_COUNT; // Number of counts needed - float number
+  long counts =round(count_f); //Target number of counts to produce an angle
+  return counts;
+}

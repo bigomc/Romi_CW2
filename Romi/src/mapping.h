@@ -3,6 +3,13 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
+
+const byte MAP_RESOLUTION = 25;
+const byte MAP_DEFAULT_FEATURE = '#';
+const int MAP_X=1800;
+const int MAP_Y=1800;
+const int C_HALF_WIDTH = 36;
+
 class Mapper
 {
     public:
