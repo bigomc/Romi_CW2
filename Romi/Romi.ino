@@ -146,26 +146,17 @@ void setup()
   // from A0, which should itself be quite random.
   randomSeed(analogRead(A0));
 
-<<<<<<< master
-
-
   Serial.println("Calibrating line sensors");
   LineCentre.calibrate();
   LineLeft.calibrate();
   LineRight.calibrate();
 
-<<<<<<< master
   Map.printMap();
   ButtonB.waitForButton(); //Useful if we want to check last map before erasing
 
   Map.resetMap();
   Map.printMap();
   Serial.println("Map Erased - Waiting for start");
-=======
-=======
->>>>>>> HEAD~0
-  Serial.println("Waiting for start");
->>>>>>> HEAD~1
 
   //// Watch for second button press, then begin autonomous mode.
   ButtonB.waitForButton();
@@ -188,7 +179,7 @@ void setup()
     //Initialise simple scheduler
     initScheduler();
 
-	  createTask(UpdateTask, SAMPLING_TICK_PERIOD);
+    createTask(UpdateTask, SAMPLING_TICK_PERIOD);
     createTask(ControlSpeed, 10);
     createTask(doMovement, 20);
     createTask(doTurn, 40);
@@ -227,26 +218,8 @@ void SensorsTask() {
     Mag.readCalibrated();
 }
 
-<<<<<<< master
-void PrintTask(){
-	Pose.printPose();
-    //Serial.print(Pose.getLeftVelocity());
-    //Serial.print(" ");
-    //Serial.print(Pose.getRightVelocity());
-    //Serial.print(" ");
-    Serial.println(DistanceSensor.getDistanceRaw());
-    //Serial.print(" [");
-    //Serial.print(LineLeft.readCalibrated());
-    //Serial.print(", ");
-    //Serial.print(LineCentre.readCalibrated());
-    //Serial.print(", ");
-    //Serial.print(LineRight.readCalibrated());
-    //Serial.println("]");
-    }
-
-=======
 void PrintTask() {
-	//Pose.printPose();
+	Pose.printPose();
     Serial.print(Pose.getLeftVelocity());
     Serial.print(" ");
     Serial.print(Pose.getRightVelocity());
@@ -262,7 +235,6 @@ void PrintTask() {
     Serial.print(Mag.orientation);
     Serial.println(")");
 }
->>>>>>> HEAD~0
 
 void ControlSpeed() {
     if(!stop_mapping && !heading){ //
@@ -339,34 +311,34 @@ void doMovement() {
 //Function to turn the robot a specific target angle
 void doTurn (){
 
-if(heading){
-  float current_rot = Pose.getThetaDegrees() - zero_rot;
-  if((target_rot-current_rot>=2) && current_rot>-10){
-    long heading_counts = Pose.angle2counts(2);
-    long targetCounts = getAbsoluteCountRight() + heading_counts; // Turning CCW
-    float rot_demand = HeadingControl.update(targetCounts,getAbsoluteCountRight());
-    LeftMotor.setPower(-rot_demand);
-    RightMotor.setPower(rot_demand);
-    Serial.print(current_rot);
-    Serial.print(" ");
-    Serial.println(target_rot);
-    delay(100);
+    if(heading){
+      float current_rot = Pose.getThetaDegrees() - zero_rot;
+      if((target_rot-current_rot>=2) && current_rot>-10){
+        long heading_counts = Pose.angle2counts(2);
+        long targetCounts = getAbsoluteCountRight() + heading_counts; // Turning CCW
+        float rot_demand = HeadingControl.update(targetCounts,getAbsoluteCountRight());
+        LeftMotor.setPower(-rot_demand);
+        RightMotor.setPower(rot_demand);
+        Serial.print(current_rot);
+        Serial.print(" ");
+        Serial.println(target_rot);
+        delay(100);
 
-  } else if (((MAP_X-Pose.getX())< C_HALF_WIDTH) || ((MAP_Y-Pose.getY())< C_HALF_WIDTH) || (Pose.getX()<C_HALF_WIDTH) || (Pose.getY()<C_HALF_WIDTH)){
-        float forward_speed = 10;
-        LeftMotor.setPower(forward_speed);
-        RightMotor.setPower(forward_speed);
-        }
+      } else if (((MAP_X-Pose.getX())< C_HALF_WIDTH) || ((MAP_Y-Pose.getY())< C_HALF_WIDTH) || (Pose.getX()<C_HALF_WIDTH) || (Pose.getY()<C_HALF_WIDTH)){
+            float forward_speed = 10;
+            LeftMotor.setPower(forward_speed);
+            RightMotor.setPower(forward_speed);
+            }
 
-    else {
-          heading =  false;
-          Serial.print("heading: ");
-          Serial.println(heading);
-          Serial.print(current_rot);
-          Serial.print(" ");
-          Serial.println(target_rot);
-          }
-}
+        else {
+              heading =  false;
+              Serial.print("heading: ");
+              Serial.println(heading);
+              Serial.print(current_rot);
+              Serial.print(" ");
+              Serial.println(target_rot);
+              }
+    }
 }
 
 
@@ -381,77 +353,74 @@ if(heading){
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void MappingTask() {
 
+    if (stop_mapping && (Pose.getLeftVelocity() == 0) && (Pose.getRightVelocity() == 0)){
+        ButtonB.waitForButton();
+        Map.printMap();
+    }
 
-  if (stop_mapping && (Pose.getLeftVelocity() == 0) && (Pose.getRightVelocity() == 0)){
-    ButtonB.waitForButton();
-    Map.printMap();
-  }
-
-  if ((millis() - count_mapping) > TIME_LIMIT){
-    Serial.println("Stopping");
-    stop_mapping = true;
-  }
-
-
-  // Read the IR Sensor and determine distance in
-  // mm.  Make sure you calibrate your own code!
-  // We threshold a reading between 40mm and 12mm.
-  // The rationale being:
-  // We can't trust very close readings or very far.
-  // ...but feel free to investigate this.
-  byte cell_read = Map.readEeprom(Pose.getX(),Pose.getY());
-
-  if (cell_read != (byte)'O' && cell_read != (byte)'L' && cell_read != (byte)'R'){
-    Map.updateMapFeature((byte)'V',Pose.getY(),Pose.getX());
-   }
+    if ((millis() - count_mapping) > TIME_LIMIT){
+        Serial.println("Stopping");
+        stop_mapping = true;
+    }
 
 
-  //OBSTACLE avoidance
+    // Read the IR Sensor and determine distance in
+    // mm.  Make sure you calibrate your own code!
+    // We threshold a reading between 40mm and 12mm.
+    // The rationale being:
+    // We can't trust very close readings or very far.
+    // ...but feel free to investigate this.
+    byte cell_read = Map.readEeprom(Pose.getX(),Pose.getY());
 
-  float distance = DistanceSensor.getDistanceInMM();
-  if( distance < 400 && distance > 100 ) {
-    // We know the romi has the sensor mounted
-    // to the front of the robot.  Therefore, the
-    // sensor faces along Pose.Theta.
-    // We also add on the distance of the
-    // sensor away from the centre of the robot.
-    distance += 80;
-
-
-    // Here we calculate the actual position of the obstacle we have detected
-    float projected_x = Pose.getX() + ( distance * cos( Pose.getThetaRadians() ) );
-    float projected_y = Pose.getY() + ( distance * sin( Pose.getThetaRadians() ) );
-    Map.updateMapFeature( (byte)'O', projected_y, projected_x );
+    if (cell_read != (byte)'O' && cell_read != (byte)'L' && cell_read != (byte)'R'){
+        Map.updateMapFeature((byte)'V',Pose.getY(),Pose.getX());
+    }
 
 
-  }
+    //OBSTACLE avoidance
 
-  // Check RFID scanner.
-  // Look inside RF_interface.h for more info.
-  if( checkForRFID() ) {
+    float distance = DistanceSensor.getDistanceInMM();
+    if( distance < 400 && distance > 100 ) {
+        // We know the romi has the sensor mounted
+        // to the front of the robot.  Therefore, the
+        // sensor faces along Pose.Theta.
+        // We also add on the distance of the
+        // sensor away from the centre of the robot.
+        distance += 80;
 
-    // Add card to map encoding.
-    Map.updateMapFeature( (byte)'R', Pose.getY(), Pose.getX() );
 
-    // you can check the position reference and
-    // bearing information of the RFID Card in
-    // the following way:
-    // serialToBearing( rfid.serNum[0] );
-    // serialToXPos( rfid.serNum[0] );
-    // serialToYPos( rfid.serNum[0] );
-    //
-    // Note, that, you will need to set the x,y
-    // and bearing information in rfid.h for your
-    // experiment setup.  For the experiment days,
-    // we will tell you the serial number and x y
-    // bearing information for the cards in use.
+        // Here we calculate the actual position of the obstacle we have detected
+        float projected_x = Pose.getX() + ( distance * cos( Pose.getThetaRadians() ) );
+        float projected_y = Pose.getY() + ( distance * sin( Pose.getThetaRadians() ) );
+        Map.updateMapFeature( (byte)'O', projected_y, projected_x );
+    }
 
-  }
+    // Check RFID scanner.
+    // Look inside RF_interface.h for more info.
+    if( checkForRFID() ) {
 
-  // Basic uncalibrated check for a line.
-  // Students can do better than this after CW1 ;)
-  // Condition will depend on calibration method, the one below worked for my Romi using static calibration
-  if( (LineCentre.readCalibrated() + LineLeft.readCalibrated() + LineRight.readCalibrated()) > LINE_CONFIDENCE  ) {
-      Map.updateMapFeature( (byte)'L', Pose.getY(), Pose.getX() );
-  }
+        // Add card to map encoding.
+        Map.updateMapFeature( (byte)'R', Pose.getY(), Pose.getX() );
+
+        // you can check the position reference and
+        // bearing information of the RFID Card in
+        // the following way:
+        // serialToBearing( rfid.serNum[0] );
+        // serialToXPos( rfid.serNum[0] );
+        // serialToYPos( rfid.serNum[0] );
+        //
+        // Note, that, you will need to set the x,y
+        // and bearing information in rfid.h for your
+        // experiment setup.  For the experiment days,
+        // we will tell you the serial number and x y
+        // bearing information for the cards in use.
+
+    }
+
+    // Basic uncalibrated check for a line.
+    // Students can do better than this after CW1 ;)
+    // Condition will depend on calibration method, the one below worked for my Romi using static calibration
+    if( (LineCentre.readCalibrated() + LineLeft.readCalibrated() + LineRight.readCalibrated()) > LINE_CONFIDENCE  ) {
+        Map.updateMapFeature( (byte)'L', Pose.getY(), Pose.getX() );
+    }
 }
