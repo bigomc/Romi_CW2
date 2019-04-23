@@ -5,11 +5,11 @@ void Imu::init()
 {
     if (!imu.init())
     {
-        Serial.println("Failed to detect and initialize magnetometer!");
+        Serial.println("Failed to detect and initialize accelerometer!");
         while (1);
     }
-
     imu.enableDefault();
+	//imu.writeReg(LSM6::CTRL1_XL, 0b01011000); // 208 Hz, +/4 g
 }
 
 void Imu::readRaw()
@@ -39,9 +39,6 @@ void Imu::readCalibrated()
   ax = a_sensitivity * imu.a.x;
   ay = a_sensitivity * imu.a.y;
   az = a_sensitivity * imu.a.z;
-
-
-
 
 }
 

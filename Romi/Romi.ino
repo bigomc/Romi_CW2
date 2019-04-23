@@ -49,7 +49,7 @@ LineSensor    LineRight(LINE_RIGHT_PIN); //Right line sensor
 
 SharpIR       DistanceSensor(SHARP_IR_PIN); //Distance sensor
 
-Imu           Imu;
+Imu           _imu;
 
 Magnetometer  Mag; // Class for the magnetometer
 
@@ -108,12 +108,15 @@ void setup()
   // The IMU calibration requires the Romi does not move.
   // See related lab sheets for more information.
   /*
-  Wire.begin();
+  
   Mag.init();
   Mag.calibrate();
-  Imu.init();
-  Imu.calibrate();
+  
   */
+  
+  Wire.begin();
+  _imu.init();
+  _imu.calibrate();
 
   // Set the random seed for the random number generator
   // from A0, which should itself be quite random.
@@ -163,7 +166,6 @@ void setup()
     createTask(SensorsTask, 20);
     createTask(MappingTask, 50);
     createTask(PrintTask, 500);
-
     count_mapping = millis ();
 }
 
@@ -192,6 +194,8 @@ void SensorsTask() {
     LineCentre.read();
     LineLeft.read();
     LineRight.read();
+	_imu.readRaw();
+
 }
 
 void PrintTask() {
@@ -208,6 +212,19 @@ void PrintTask() {
     Serial.print(", ");
     Serial.print(LineRight.readCalibrated());
     Serial.println("]");
+	Serial.print("IMU: [");
+	Serial.print(_imu.gx);
+	Serial.print(", ");
+	Serial.print(_imu.gy);
+	Serial.print(", ");
+	Serial.print(_imu.gz);
+	Serial.print(", ");
+	Serial.print(_imu.ax);
+	Serial.print(", ");
+	Serial.print(_imu.ay);
+	Serial.print(", ");
+	Serial.print(_imu.az);
+	Serial.println("]");
 }
 
 void ControlSpeed() {
