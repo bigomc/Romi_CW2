@@ -1,21 +1,7 @@
 #include "irproximity.h"
 
-
-SharpIR::SharpIR(byte _pin)
-{
-  pin = _pin;
+SharpIR::SharpIR(byte line_pin) : AnalogSensor(line_pin) {
 }
-
-int SharpIR::read() {
-    last_value = analogRead(pin);
-    return last_value;
-}
-
-int SharpIR::getDistanceRaw()
-{
-    return last_value;
-}
-
 
 /*
  * This piece of code is quite crucial to mapping
@@ -24,8 +10,7 @@ int SharpIR::getDistanceRaw()
  * Also remember to make sure your sensor is fixed to your
  * Romi firmly and has a clear line of sight!
  */
-float SharpIR::getDistanceInMM()
-{
+float SharpIR::readCalibrated() {
 
     float distance = (float)last_value;
 

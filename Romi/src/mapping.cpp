@@ -1,9 +1,6 @@
 #include "mapping.h"
 
-const byte MAP_RESOLUTION = 25;
-const byte MAP_DEFAULT_FEATURE = '#';
-const int MAP_X=1800;
-const int MAP_Y=1800;
+
 
 void Mapper::resetMap()
 {
@@ -67,6 +64,9 @@ void Mapper::updateMapFeature(byte feature, int y, int x)
     if (x > MAP_X || x < 0 || y > MAP_Y || y < 0)
     {
       Serial.println(F("Error:Invalid co-ordinate"));
+      Serial.print(x);
+      Serial.print(F(" "));
+      Serial.println(y);
       return;
     }
 
