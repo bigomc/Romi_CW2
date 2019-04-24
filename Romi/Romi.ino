@@ -33,7 +33,7 @@
 #define BAUD_RATE 115200
 #define SAMPLING_TICK_PERIOD    5
 #define MAX_VELOCITY    3
-#define TIME_LIMIT  60000
+#define TIME_LIMIT  100000
 #define LINE_CONFIDENCE 70
 
 
@@ -50,7 +50,7 @@ LineSensor    LineRight(LINE_RIGHT_PIN); //Right line sensor
 
 SharpIR       DistanceSensor(SHARP_IR_PIN); //Distance sensor
 
-Imu           Imu;
+Imu           _imu;
 
 Magnetometer  Mag; // Class for the magnetometer
 
@@ -135,12 +135,8 @@ void setup()
   Mag.calibrate();
   LeftMotor.setPower(0);
   RightMotor.setPower(0);
-
-  // The IMU calibration requires the Romi does not move.
-  // IMU INITIALIZATION GOES HERE
-  // Imu.init();
-  // Imu.calibrate();
-  // IMU INITIALIZATION GOES HERE
+  _imu.init();
+  _imu.calibrate();
 
   // Set the random seed for the random number generator
   // from A0, which should itself be quite random.
@@ -185,8 +181,7 @@ void setup()
     createTask(doTurn, 40);
     createTask(SensorsTask, 20);
     createTask(MappingTask, 50);
-    createTask(PrintTask, 500);
-
+    createTask(PrintTask, 50);
     count_mapping = millis ();
 }
 
@@ -221,6 +216,13 @@ void SensorsTask() {
 void PrintTask() {
 	Pose.printPose();
     Serial.print(Pose.getLeftVelocity());
+	_imu.readCalibrated();
+
+}
+
+void PrintTask() {
+	//Pose.printPose();
+    /*Serial.print(Pose.getLeftVelocity());
     Serial.print(" ");
     Serial.print(Pose.getRightVelocity());
     Serial.print(" ");
@@ -234,6 +236,28 @@ void PrintTask() {
     Serial.print("] (");
     Serial.print(Mag.orientation);
     Serial.println(")");
+    Serial.println("]");
+	Serial.print("IMU: [");
+	Serial.print(_imu.gx);
+	Serial.print(", ");
+	Serial.print(_imu.gy);
+	Serial.print(", ");
+	Serial.print(_imu.gz);
+	Serial.print(", ");
+	Serial.print(_imu.ax);
+	Serial.print(", ");
+	Serial.print(_imu.ay);
+	Serial.print(", ");
+	Serial.print(_imu.az);
+	Serial.println*/
+	_imu.readCalibrated();
+	float no_filtered = _imu.gz;
+	_imu.readFiltered();
+	float filtered = _imu.gz;
+	Serial.print(no_filtered);
+	Serial.print(", ");
+	Serial.println(filtered);
+
 }
 
 void ControlSpeed() {

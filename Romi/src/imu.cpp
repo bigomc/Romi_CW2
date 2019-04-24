@@ -5,11 +5,15 @@ void Imu::init()
 {
     if (!imu.init())
     {
-        Serial.println("Failed to detect and initialize magnetometer!");
+        Serial.println("Failed to detect and initialize accelerometer!");
         while (1);
     }
-
     imu.enableDefault();
+	//imu.writeReg(LSM6::CTRL1_XL, 0b01011000); // 208 Hz, +/4 g
+	imu.writeReg(imu.CTRL1_XL, 0x40);
+	imu.writeReg(imu.CTRL2_G, 0x40);
+	imu.writeReg(imu.FIFO_CTRL5, 0x26);
+	imu.writeReg(imu.FIFO_CTRL1, 0x01);
 }
 
 void Imu::readRaw()
@@ -40,9 +44,6 @@ void Imu::readCalibrated()
   ay = a_sensitivity * imu.a.y;
   az = a_sensitivity * imu.a.z;
 
-
-
-
 }
 
 void Imu::calibrate()
@@ -72,4 +73,23 @@ void Imu::calibrate()
   delay(500);
 
 
+}
+
+
+void Imu::readFiltered() {
+	readCalibrated();
+
+	ax = (alpha*ax) + ((1 - alpha)*last_ax);
+	ay = (alpha*ay) + ((1 - alpha)*last_ay);
+	az = (alpha*az) + ((1 - alpha)*last_az);
+	gx = (alpha*gx) + ((1 - alpha)*last_gx);
+	gy = (alpha*gy) + ((1 - alpha)*last_gy);
+	gz = (alpha*gz) + ((1 - alpha)*last_gz);
+
+	last_ax = ax;
+	last_ay = ay;
+	last_az = az;
+	last_gx = gx;
+	last_gy = gy;
+	last_gz = gz;
 }
