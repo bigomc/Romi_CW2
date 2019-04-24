@@ -86,6 +86,14 @@ bool heading = false;
 float target_rot = 0;
 float zero_rot = 0;
 
+float heading;
+float last_heading;
+float alpha_f;
+int current_millis;
+
+float g;
+float h;
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * This setup() routine initialises all class instances above and peripherals.   *
  * It is recommended:                                                            *
@@ -102,6 +110,7 @@ void setup()
 
   // Initialise Serial communication
   Serial.begin( BAUD_RATE );
+  Wire.begin();
   delay(1000);
 
   Serial.println("Board Reset");
@@ -125,8 +134,7 @@ void setup()
   // The magnetometer calibration routine require you to move
   // your robot around  in space.
   // See related lab sheets for more information.
-  Serial.println("Initialising Magnetometer");
-  Wire.begin();
+  /*Serial.println("Initialising Magnetometer");
   Mag.init();
   Serial.println("Press button to calibrate Magnetometer");
   ButtonB.waitForButton();
@@ -135,7 +143,7 @@ void setup()
   Mag.calibrate();
 
   LeftMotor.setPower(0);
-  RightMotor.setPower(0);
+  RightMotor.setPower(0);*/
 
   _imu.init();
   _imu.calibrate();
@@ -161,7 +169,7 @@ void setup()
 
   // Your extra setup code is best placed here:
   // ...
-  Mag.setOrientationOffset();
+  //Mag.setOrientationOffset();
   // ...
   // but not after the following:
 
@@ -208,15 +216,32 @@ void SensorsTask() {
     // the real value when needed instead of read everytime, this reduces
     // latency and speeds up the program execution
 
-    DistanceSensor.read();
-    LineCentre.read();
-    LineLeft.read();
-    LineRight.read();
+    //DistanceSensor.read();
+    //LineCentre.read();
+    //LineLeft.read();
+    //LineRight.read();
     Mag.readCalibrated();
+	_imu.readFiltered();
+}
+
+void gh_filter() {
+	speed = (1 - h)*speed + (h*angularVelocity);
+	prediction = heading + (speed*elapsed_time);
+	heading = prediction + g * (complementary_heading - prediction);
+	
+}
+
+void sensorFusion() { //When finished, implement in Kinematics class
+	
+	int elapsed_time = millis() - current_millis;
+	int heading = alpha_f * (last_heading + _imu.gz * elapsed_time) + ((1 - alpha_f)*Mag.orientation); 
+	last_heading = heading;
+	current_millis = millis();
+
 }
 
 void PrintTask() {
-	_imu.readFiltered();
+	_imu.readCalibrated();
 	float no_filtered = _imu.gz;
 	_imu.readFiltered();
 	float filtered = _imu.gz;

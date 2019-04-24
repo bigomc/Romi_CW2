@@ -27,7 +27,7 @@ class Imu
 		float last_gx = 0;
 		float last_gy = 0;
 		float last_gz = 0;
-		float alpha = 0.2;
+		float alpha = 0.1;
 
     private:
         float a_sensitivity = 0.061/1000;

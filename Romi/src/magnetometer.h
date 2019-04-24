@@ -15,11 +15,13 @@ class Magnetometer
         void  calculateOffsets();
         void  set_sensitivity();
         void setOrientationOffset();
+		void readFiltered();
         LIS3MDL mag;
         float x = 0;
         float y = 0;
         float z = 0;
         float orientation = 0;
+		float last_orientation = 0;
 
     private:
         float sensitivity = 1.0/6842.0; //This makes more sense if you look at data sheet of the sensor
@@ -36,6 +38,7 @@ class Magnetometer
         float y_scale = 0;
         float z_scale = 0;
         float orientation_offset = 0;
+		float alpha_m = 0.1;
 };
 
 #endif
