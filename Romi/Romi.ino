@@ -32,7 +32,7 @@
 #define BAUD_RATE 115200
 #define SAMPLING_TICK_PERIOD    5
 #define MAX_VELOCITY    3
-#define TIME_LIMIT  20000
+#define TIME_LIMIT  100000
 #define LINE_CONFIDENCE 70
 
 
@@ -165,7 +165,7 @@ void setup()
     createTask(doMovement, 20);
     createTask(SensorsTask, 20);
     createTask(MappingTask, 50);
-    createTask(PrintTask, 500);
+    createTask(PrintTask, 50);
     count_mapping = millis ();
 }
 
@@ -194,13 +194,13 @@ void SensorsTask() {
     LineCentre.read();
     LineLeft.read();
     LineRight.read();
-	_imu.readRaw();
+	_imu.readCalibrated();
 
 }
 
 void PrintTask() {
 	//Pose.printPose();
-    Serial.print(Pose.getLeftVelocity());
+    /*Serial.print(Pose.getLeftVelocity());
     Serial.print(" ");
     Serial.print(Pose.getRightVelocity());
     Serial.print(" ");
@@ -224,7 +224,15 @@ void PrintTask() {
 	Serial.print(_imu.ay);
 	Serial.print(", ");
 	Serial.print(_imu.az);
-	Serial.println("]");
+	Serial.println*/
+	_imu.readCalibrated();
+	float no_filtered = _imu.gz;
+	_imu.readFiltered();
+	float filtered = _imu.gz;
+	Serial.print(no_filtered);
+	Serial.print(", ");
+	Serial.println(filtered);
+
 }
 
 void ControlSpeed() {
