@@ -133,8 +133,10 @@ void setup()
   LeftMotor.setPower(40);
   RightMotor.setPower(-40);
   Mag.calibrate();
+
   LeftMotor.setPower(0);
   RightMotor.setPower(0);
+
   _imu.init();
   _imu.calibrate();
 
@@ -214,13 +216,16 @@ void SensorsTask() {
 }
 
 void PrintTask() {
-	Pose.printPose();
-    Serial.print(Pose.getLeftVelocity());
-	_imu.readCalibrated();
-
+	_imu.readFiltered();
+	float no_filtered = _imu.gz;
+	_imu.readFiltered();
+	float filtered = _imu.gz;
+	Serial.print(no_filtered);
+	Serial.print(", ");
+	Serial.println(filtered);
 }
 
-void PrintTask() {
+void PrintTask1() {
 	//Pose.printPose();
     /*Serial.print(Pose.getLeftVelocity());
     Serial.print(" ");
@@ -250,14 +255,6 @@ void PrintTask() {
 	Serial.print(", ");
 	Serial.print(_imu.az);
 	Serial.println*/
-	_imu.readCalibrated();
-	float no_filtered = _imu.gz;
-	_imu.readFiltered();
-	float filtered = _imu.gz;
-	Serial.print(no_filtered);
-	Serial.print(", ");
-	Serial.println(filtered);
-
 }
 
 void ControlSpeed() {
