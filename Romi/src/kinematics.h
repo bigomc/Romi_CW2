@@ -41,6 +41,15 @@ class Kinematics
          long  right_angular_velocity = 0;
          bool  debug=false;
          unsigned long last_update = 0;
+         float heading_filter_mag = 0;
+         float gyro = 0;
+         float g_high_filter = 0;
+         float complementary_heading = 0;
+         float g_h_heading = 0;
+         float angular_rate = 0;
+         float h = 0.0001;
+         float g = 0.1;
+         float theta_f = 0;
 
 };
 

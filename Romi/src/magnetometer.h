@@ -1,9 +1,10 @@
-#ifndef _Magentometer_h
-#define _Magentometer_h
+#ifndef _Magentometer
+#define _Magentometer
 
 #include <LIS3MDL.h>
+#include <Arduino.h>
 
-const int NUM_CALIBRATIONS_MAG = 200;
+const int NUM_CALIBRATIONS_MAG = 500;
 
 class Magnetometer
 {
@@ -13,16 +14,16 @@ class Magnetometer
         void  readCalibrated();
         void  calibrate();
         void  calculateOffsets();
-        void  set_sensitivity();
-        void setOrientationOffset();
+        void  set_zero();
+        float getHeading();
         LIS3MDL mag;
         float x = 0;
         float y = 0;
         float z = 0;
-        float orientation = 0;
+        float heading_mag_zero = 0;
 
     private:
-        float sensitivity = 1.0/6842.0; //This makes more sense if you look at data sheet of the sensor
+        float sensitivity = 1.0/6842.0; //default sensitivity for +/-4 Gauss
         int x_min = 32767;
         int y_min = 32767;
         int z_min = 32767;
@@ -35,7 +36,8 @@ class Magnetometer
         float x_scale = 0;
         float y_scale = 0;
         float z_scale = 0;
-        float orientation_offset = 0;
+        float heading = 0;
+
 };
 
 #endif

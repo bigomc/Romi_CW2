@@ -2,6 +2,11 @@
 #include "kinematics.h"
 #include "Wheels.h"
 #include "utils.h"
+#include "imu.h"
+#include "magnetometer.h"
+
+extern Magnetometer Mag;
+extern Imu Imu;
 
 /*
  * Class constructor
@@ -21,11 +26,8 @@ void Kinematics::update()
     float delta_dif = MM_PER_COUNT * (right_count - left_count);
     float offset = 0;
 
-    //Update position
-    x += (cos(theta) * delta_sum / 2);
-    y += (sin(theta) * delta_sum / 2);
+    //Heading angle extracted from encoders
     theta +=  (delta_dif / WHEEL_DISTANCE);
-
     //Wrap theta between -PI and PI.
     if(theta < -PI ) {
         offset = 2 * PI;
@@ -38,28 +40,68 @@ void Kinematics::update()
     float time_elapsed = millis() - last_update;
     last_update = millis();
 
-    left_angular_velocity = ((RAD_PER_COUNT * left_count) / time_elapsed);
+    left_angular_velocity = ((RAD_PER_COUNT * left_count) / time_elapsed); //Radians per second
     right_angular_velocity = ((RAD_PER_COUNT * right_count) / time_elapsed);
 
-    if (debug)
-    {
-        printPose();
-    }
+		angular_velocity = ((right_angular_velocity - left_angular_velocity)*WHEEL_RADIUS)/WHEEL_DISTANCE; //Radians per second
+		angular_velocity = rad2deg(angular_velocity); //Degrees per second
+
+		//G-H Filter to improve heading accuracy
+		angular_rate = angular_rate + h*(angular_velocity-angular_rate); //Degrees per second
+		float h_prediction = g_h_heading + angular_rate*(time_elapsed*0.001); //Degrees
+		Serial.print("Ang rate: ");
+		Serial.println(angular_velocity);
+		Serial.print("h_prediction: ");
+		Serial.println(h_prediction);
+
+		//Complementary heading filter calculations:
+		//Magnetometer reading and low pass Filter
+		float heading_mag = Mag.getHeading(); //Degrees
+		heading_filter_mag = 0.8*heading_filter_mag + 0.2*heading_mag;
+		//Gyroscope reading and high pass Filter
+		Imu.readCalibrated(); //Degrees per second
+		//gyro = 0.8*gyro + 0.2*(Imu.gz); //Gz low pass filter
+		//g_high_filter += ((Imu.gz - gyro)*time_elapsed)*0.001; //Gz after high pass filter
+		//Putting all together in complementary filter
+  	complementary_heading = 0.8*(complementary_heading + (Imu.gz*time_elapsed*0.001))+0.2*(-heading_filter_mag); //Complementary filter - Degrees
+
+  	//Wrapping angle value
+		if(complementary_heading < -180){
+	 			complementary_heading = 360 + complementary_heading;
+ 				}
+ 		if(complementary_heading > 180){
+	 			complementary_heading = complementary_heading - 360;
+ 				}
+		Serial.print("complementary_heading: ");
+		Serial.println(complementary_heading);
+		//g-h filter calculations
+		float residual = complementary_heading - h_prediction;
+		g_h_heading = h_prediction + g*residual;
+
+  	//Update position
+		theta_f = g_h_heading;
+		x += (cos(deg2rad(theta_f)) * delta_sum / 2);
+    y += (sin(deg2rad(theta_f)) * delta_sum / 2);
+
+		if (debug)
+		{
+				printPose();
+		}
 
 }
 
 float Kinematics::getThetaDegrees()
 {
-    return rad2deg(theta);
+    return theta_f;
 }
 
 float Kinematics::getThetaRadians()
 {
-    return (theta);
+    return (deg2rad(theta_f));
 }
 
 float Kinematics::getAngularVelocity() {
-    return rad2deg( angular_velocity );
+    return angular_velocity;
 }
 
 float Kinematics::getX()
@@ -75,8 +117,8 @@ float Kinematics::getY()
 void Kinematics::resetPose()
 {
 
-    x = 0;
-    y = 0;
+    x = 900;
+    y = 900;
     theta = 0;
 
 }
@@ -97,8 +139,10 @@ void Kinematics::printPose()
     Serial.print(x);
     Serial.print(F(" Y: "));
     Serial.print(y);
-    Serial.print(F(" H: "));
-    Serial.println(rad2deg(theta));
+    Serial.print(F(" H_en: "));
+    Serial.print(rad2deg(theta));
+		Serial.print(F(" H_f: "));
+    Serial.println(theta_f);
 
 }
 
