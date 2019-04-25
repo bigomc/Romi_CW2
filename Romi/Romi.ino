@@ -232,12 +232,10 @@ void gh_filter() {
 }
 
 void sensorFusion() { //When finished, implement in Kinematics class
-	
 	int elapsed_time = millis() - current_millis;
 	int heading = alpha_f * (last_heading + _imu.gz * elapsed_time) + ((1 - alpha_f)*Mag.orientation); 
 	last_heading = heading;
 	current_millis = millis();
-
 }
 
 void PrintTask() {
