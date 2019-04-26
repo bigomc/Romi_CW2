@@ -26,6 +26,7 @@ void Kinematics::update()
     float delta_dif = MM_PER_COUNT * (right_count - left_count);
     float offset = 0;
 
+
     //Update position
     x += (cos(deg2rad(theta_f)) * delta_sum / 2);
     y += (sin(deg2rad(theta_f)) * delta_sum / 2);

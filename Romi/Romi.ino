@@ -183,7 +183,7 @@ void setup()
     createTask(doMovement, 20);
     createTask(doTurn, 40);
     createTask(SensorsTask, 20);
-    createTask(MappingTask, 50);
+    // createTask(MappingTask, 50);
     createTask(PrintTask, 200);
     count_mapping = millis ();
 }
@@ -219,8 +219,8 @@ void SensorsTask() {
 
 void PrintTask() {
 	Pose.printPose();
-  float heading_mag = Mag.headingFiltered();
-  Serial.println(heading_mag);
+  //float heading_mag = Mag.headingFiltered();
+  //Serial.println(heading_mag);
     /*Serial.print(Pose.getLeftVelocity());
     Serial.print(" ");
     Serial.print(Pose.getRightVelocity());
