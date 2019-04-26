@@ -37,8 +37,8 @@ class Kinematics
          float theta=0;
          float last_theta = 0;
          float angular_velocity = 0;
-         long  left_angular_velocity = 0;
-         long  right_angular_velocity = 0;
+         float  left_angular_velocity = 0;
+         float  right_angular_velocity = 0;
          bool  debug=false;
          unsigned long last_update = 0;
 
