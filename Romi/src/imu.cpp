@@ -81,7 +81,7 @@ void Imu::calibrate()
 
 void Imu::getFiltered() {
 
-	readCalibrated();
+	//readCalibrated();
 
 	//ax = (alpha*ax) + ((1 - alpha)*last_ax);
 	//ay = (alpha*ay) + ((1 - alpha)*last_ay);

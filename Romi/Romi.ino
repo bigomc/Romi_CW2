@@ -183,7 +183,7 @@ void setup()
     createTask(doMovement, 20);
     createTask(doTurn, 40);
     createTask(SensorsTask, 20);
-    // createTask(MappingTask, 50);
+    createTask(MappingTask, 50);
     createTask(PrintTask, 200);
     count_mapping = millis ();
 }
@@ -203,7 +203,7 @@ void loop() {
 void UpdateTask() {
     Pose.update();
     Pose.sensorFusion();
-}
+    }
 
 void SensorsTask() {
     // The aim of this task is to perform all sensor readings and only return
@@ -214,6 +214,8 @@ void SensorsTask() {
     LineCentre.read();
     LineLeft.read();
     LineRight.read();
+    Imu.readCalibrated();
+    Mag.readCalibrated();
 
 }
 

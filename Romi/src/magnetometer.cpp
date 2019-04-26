@@ -13,8 +13,8 @@ void Magnetometer::init()
     }
 
     mag.enableDefault();
-    mag.writeReg(LIS3MDL::CTRL_REG1,0b01010010); //Setting high performance mode with 300Hz ODR axes X and Y
-    mag.writeReg(LIS3MDL::CTRL_REG4,0b00001000);  //Setting high performance mode with 300Hz ODR axis Z
+    //mag.writeReg(LIS3MDL::CTRL_REG1,0b01010010); //Setting high performance mode with 300Hz ODR axes X and Y
+    //mag.writeReg(LIS3MDL::CTRL_REG4,0b00001000);  //Setting high performance mode with 300Hz ODR axis Z
 }
 
 void Magnetometer::readRaw()
@@ -103,7 +103,7 @@ void Magnetometer::set_zero() {
 
 float Magnetometer::getHeading()
 {
-  readCalibrated();
+  //readCalibrated();
   heading = heading_mag_zero - atan2(y,x); //Relative to start position
 
   //Adjusting angle value

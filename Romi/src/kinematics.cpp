@@ -74,7 +74,7 @@ void Kinematics::sensorFusion(){
 	//Complementary heading filter calculations:
 	heading_mag = Mag.headingFiltered(); //Filtered magnetometer reading
 	//Gyroscope reading and high pass Filter
-	Imu.readCalibrated(); //Gyroscope reading in Degrees per second
+	//Imu.readCalibrated(); //Gyroscope reading in Degrees per second
 	//gyro = Imu.getFiltered(); //Gz low pass filter
 	//g_high_filter += ((Imu.gz - gyro)*time_elapsed)*0.001; //Gz after high pass filter
 
