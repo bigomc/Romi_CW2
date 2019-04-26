@@ -197,9 +197,9 @@ void setup()
 
     createTask(UpdateTask, SAMPLING_TICK_PERIOD);
     createTask(ControlSpeed, 10);
-    createTask(ControlPosition, 10);
-    createTask(PlanningTask, 40);
-    //createTask(doMovement, 20);
+    //createTask(ControlPosition, 10);
+    //createTask(PlanningTask, 40);
+    createTask(doMovement, 20);
     //createTask(doTurn, 40);
     createTask(SensorsTask, 20);
     createTask(MappingTask, 50);
@@ -237,32 +237,33 @@ void SensorsTask() {
 }
 
 void PrintTask() {
-    Serial.print(" ");
-    Serial.print("[");
-    Serial.print(Pose.getX());
-    Serial.print(", ");
-    Serial.print(Pose.getY());
-    Serial.print(", ");
-    Serial.print(Pose.getThetaRadians());
-    Serial.print("] [(");
-    Serial.print(Pose.getLeftVelocity());
-    Serial.print(", ");
-    Serial.print(Pose.getRightVelocity());
-    Serial.print(") (");
-    Serial.print(left_speed_demand);
-    Serial.print(", ");
-    Serial.print(right_speed_demand);
-    Serial.print(")] [");
-    Serial.print(DistanceSensor.readCalibrated());
-    Serial.print(", ");
-    Serial.print(Mag.orientation);
-    Serial.print(", ");
-    Serial.print(_imu.gz);
-    Serial.print("] (");
-    Serial.print(x_goal);
-    Serial.print(", ");
-    Serial.print(y_goal);
-    Serial.println("]");
+  Pose.printPose();
+    // Serial.print(" ");
+    // Serial.print("[");
+    // Serial.print(Pose.getX());
+    // Serial.print(", ");
+    // Serial.print(Pose.getY());
+    // Serial.print(", ");
+    // Serial.print(Pose.getThetaRadians());
+    // Serial.print("] [(");
+    // Serial.print(Pose.getLeftVelocity());
+    // Serial.print(", ");
+    // Serial.print(Pose.getRightVelocity());
+    // Serial.print(") (");
+    // Serial.print(left_speed_demand);
+    // Serial.print(", ");
+    // Serial.print(right_speed_demand);
+    // Serial.print(")] [");
+    // Serial.print(DistanceSensor.readCalibrated());
+    // Serial.print(", ");
+    // Serial.print(Mag.orientation);
+    // Serial.print(", ");
+    // Serial.print(_imu.gz);
+    // Serial.print("] (");
+    // Serial.print(x_goal);
+    // Serial.print(", ");
+    // Serial.print(y_goal);
+    // Serial.println("]");
 }
 
 void ControlSpeed() {
@@ -351,43 +352,14 @@ void doMovement() {
     float turn_bias;
     int obs_dect = DistanceSensor.readRaw();
 
-    if (!heading){
-      forward_bias = MAX_VELOCITY;
-      // Periodically set a random turn.
-      // Here, gaussian means we most often drive
-      // forwards, and occasionally make a big turn.
-      if( millis() - walk_update > 500 ) {
-          walk_update = millis();
-          //randGaussian(mean, sd).  utils.h
-          turn_bias = randGaussian(0, 6); //0
-          // Setting a speed demand with these variables
-          // is automatically captured by a speed PID
-          // controller in timer3 ISR. Check interrupts.h
-          // for more information.
-          left_speed_demand = forward_bias + turn_bias;
-          right_speed_demand = forward_bias - turn_bias;
-        }
-      // Check if we are about to collide.  If so,
-      // zero forward speed
-      if(obs_dect> 500){
-          heading = true;
-          forward_bias = 0;
-          target_rot = 90;
-          zero_rot = Pose.getThetaDegrees();
-          Serial.print("heading obs: ");
-          Serial.println(heading);
-        }
-      // Check if we are at an edge cell
-      else if(((MAP_X-Pose.getX())< C_HALF_WIDTH) || ((MAP_Y-Pose.getY())< C_HALF_WIDTH) || (Pose.getX()<C_HALF_WIDTH) || (Pose.getY()<C_HALF_WIDTH)){
-        forward_bias = 0;
-        heading = true;
-        target_rot = 180;
-        zero_rot = Pose.getThetaDegrees();
-        Serial.print("heading border: ");
-        Serial.println(heading);
-        }
-
-      }
+if (Pose.getThetaDegrees() <=90 && Pose.getThetaDegrees() >-5 ){
+    float forward_bias=0;
+      float turn_bias=3;
+      left_speed_demand = forward_bias - turn_bias;
+              right_speed_demand = forward_bias + turn_bias;
+                } else {
+              stop_mapping =1;
+            }
 
  }
 
