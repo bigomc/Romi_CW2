@@ -8,7 +8,7 @@ refPt = []
 cropping = False
 
 
-def click_and_crop(event, x, y, flags, param):
+def click_and_crop(event, x, y, flag, params):
     # grab references to the global variables
     global refPt, cropping
 
@@ -34,6 +34,7 @@ def click_and_crop(event, x, y, flags, param):
 def get_cropping_map(imageName):
     # construct the argument parser and parse the arguments
     # load the image, clone it, and setup the mouse callback function
+    global image
     image = imageName
     clone = image.copy()
     cv2.namedWindow("image")
@@ -57,12 +58,16 @@ def get_cropping_map(imageName):
     # from teh image and display it
     if len(refPt) == 2:
         roi = clone[refPt[0][1]:refPt[1][1], refPt[0][0]:refPt[1][0]]
+        p1 = refPt[0][1]
+        p2 = refPt[1][1]
+        p3 = refPt[0][0]
+        p4 = refPt[1][0]
         cv2.imshow("ROI", roi)
         cv2.waitKey(0)
     # close all open windows
     cv2.destroyAllWindows()
-    return roi
+    return roi, p1, p2, p3, p4
 
-def map_cropped(frame):
-    return frame[refPt[0][1]:refPt[1][1], refPt[0][0]:refPt[1][0]]
+def map_cropped(frame, p1, p2, p3, p4):
+    return frame[p1:p2, p3:p4]
 

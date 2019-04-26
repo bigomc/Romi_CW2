@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 
-def subdivide(image):
+def subdivide(image, inRomi):
     gridsize = 100
     outputimage = image
     rows, cols, chann = image.shape
@@ -14,12 +14,12 @@ def subdivide(image):
         while(x<cols-gridsize):
             k = x*y+x
             cv2.rectangle(outputimage, (x,y), (x+gridsize,y+gridsize), (0, 0, 255), 1)
-            weight += weightImage(outputimage, x , y, gridsize)
+            weight += weightImage(outputimage, x , y, gridsize, inRomi)
             x += gridsize
         y += gridsize
     return [outputimage, weight]
 
-def weightImage(image, x, y, gridsize):
+def weightImage(image, x, y, gridsize, inRomi):
     auximage = image[x:x + gridsize, y:y + gridsize]
     # grab the image dimensions
     h = auximage.shape[0]
@@ -27,17 +27,34 @@ def weightImage(image, x, y, gridsize):
     weigthsum = 0
 
     # loop over the image, pixel by pixel
-    for y in range(0, h):
-        for x in range(0, w):
-            # look at the values of each pixel
-            px = auximage[y,x]
-            bluepx = px[0]
-            greenpx = px[1]
-            redpx = px[2]
-            if(bluepx != 255 and greenpx != 255):
-                weigthsum += 0
-            else:
-                weigthsum += 1
+    if inRomi == False:
+        for y in range(0, h):
+            for x in range(0, w):
+                # look at the values of each pixel
+                px = auximage[y,x]
+                bluepx = px[0]
+                greenpx = px[1]
+                redpx = px[2]
+                if(bluepx != 255 and greenpx != 255):
+                    weigthsum += 0
+                else:
+                    weigthsum += 1
+    else:
+        for y in range(0, h):
+            for x in range(0, w):
+                # look at the values of each pixel
+                px = auximage[y,x]
+                bluepx = px[0]
+                greenpx = px[1]
+                redpx = px[2]
+                if(bluepx != 255 and greenpx != 255):
+                    weigthsum += 0
+                else:
+                    if redpx != 0:
+                        weigthsum += 1
+                    else:
+                        weigthsum += 0
+
     if weigthsum > 0:
         return 0
     else:
@@ -45,7 +62,7 @@ def weightImage(image, x, y, gridsize):
 
 
 # nameOfImg = 'Photos/WellDoneMap2.jpg'
-def gridMapping(nameOfImg):
+def gridMapping(nameOfImg, inRomi):
     img = cv2.imread(nameOfImg)
     img = cv2.resize(img, (810, 1080))
     blankImg = np.zeros((1080,810,3), np.uint8)
@@ -61,7 +78,7 @@ def gridMapping(nameOfImg):
         cv2.line(blankImg, (x1, y1), (x2, y2), (0, 255, 0), 3)
 
 
-    [dividedImage, weightSum] = subdivide(blankImg)
+    [dividedImage, weightSum] = subdivide(blankImg, inRomi)
 
     cv2.imshow("Edges", img)
     cv2.imshow("Subdivided", dividedImage)
