@@ -3,7 +3,7 @@ import numpy as np
 
 
 def subdivide(image, inRomi):
-    gridsize = 100
+    gridsize = 625
     outputimage = image
     rows, cols, chann = image.shape
     x = 0
@@ -63,8 +63,8 @@ def weightImage(image, x, y, gridsize, inRomi):
 
 # nameOfImg = 'Photos/WellDoneMap2.jpg'
 def gridMapping(nameOfImg, inRomi):
-    img = cv2.imread(nameOfImg)
-    img = cv2.resize(img, (810, 1080))
+
+    img = cv2.resize(nameOfImg, (810, 1080))
     blankImg = np.zeros((1080,810,3), np.uint8)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 

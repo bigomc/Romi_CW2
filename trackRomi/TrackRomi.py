@@ -14,13 +14,19 @@ import croppingExample
 
 
 ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--image",
+ap.add_argument("-m", "--map", required=True,
+                help="path to the map without romi image file")
+ap.add_argument("-i", "--image", required=True,
                 help="path to the calibration image file")
 ap.add_argument("-v", "--video", required = True,
                 help="path to the (optional) video file")
-ap.add_argument("-b", "--buffer", type=int, default=512,
+ap.add_argument("-b", "--buffer", type=int, default=2048,
                 help="max buffer size")
 args = vars(ap.parse_args())
+
+print("Making the initial map with points")
+baseSum = gridMap.gridMapping(cv2.imread(args['map']), False)
+print("The base points that romi is required to complete are {0}".format(baseSum))
 
 print("Press r to reset the region of interest\n Press c if you are happy!")
 [roi, p1, p2, p3, p4] = croppingExample.get_cropping_map(cv2.imread(args['image']))
@@ -111,9 +117,8 @@ while (frame is not None):
         if pts[i - 1] is None or pts[i] is None:
             continue
 
-        # otherwise, compute the thickness of the line and
-        # draw the connecting lines
-        thickness = int(np.sqrt(args["buffer"] / float(i + 1)) * 2.5)
+
+        thickness = 50
         cv2.line(frame, pts[i - 1], pts[i], (0, 0, 255), thickness)
 
     # show the frame to our screen
@@ -127,6 +132,7 @@ while (frame is not None):
 
     # handle the frame from VideoCapture or VideoStream
     frame = frame[1] if args.get("video", False) else frame
+    goalImg = frame
 
 
 # if we are not using a video file, stop the camera video stream
@@ -136,6 +142,10 @@ if not args.get("video", False):
 # otherwise, release the camera
 else:
     vs.release()
+
+print("making the grid")
+
+visitedPoints = gridMap.gridMapping(goalImg, True)
 
 # close all windows
 cv2.destroyAllWindows()
