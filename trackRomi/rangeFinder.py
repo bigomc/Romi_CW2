@@ -11,7 +11,6 @@ import cv2
 import argparse
 from operator import xor
 
-
 def callback(value):
     pass
 
@@ -28,12 +27,14 @@ def setup_trackbars(range_filter):
 
 def get_arguments(imagename):
     ap = argparse.ArgumentParser()
-    ap.add_argument('-f', '--filter', required=False, default='HSV',
+    ap.add_argument('-f', '--filter', default='HSV',
                     help='Range filter. RGB or HSV')
-    ap.add_argument('-i', '--image', required=False, default = imagename,
+    ap.add_argument('-i', '--image', default = imagename,
                     help='Path to the image')
     ap.add_argument('-w', '--webcam', required=False,
                     help='Use webcam', action='store_true')
+    ap.add_argument("-v", "--video",
+                    help="path to the (optional) video file")
     args = vars(ap.parse_args())
 
     if not xor(bool(args['image']), bool(args['webcam'])):
@@ -89,12 +90,15 @@ def rangefinder(imagename):
 
         thresh = cv2.inRange(frame_to_thresh, (v1_min, v2_min, v3_min), (v1_max, v2_max, v3_max))
 
-        if args['preview']:
-            preview = cv2.bitwise_and(image, image, mask=thresh)
-            cv2.imshow("Preview", preview)
-        else:
-            cv2.imshow("Original", image)
-            cv2.imshow("Thresh", thresh)
 
-        if cv2.waitKey(1) & 0xFF is ord('q'):
-            break
+        preview = cv2.bitwise_and(image, image, mask=thresh)
+        cv2.imshow("Preview", preview)
+
+        cv2.imshow("Original", image)
+
+
+
+        if cv2.waitKey(1) & 0xFF is ord('s'):
+            cv2.destroyAllWindows()
+            return v1_min, v2_min, v3_min, v1_max, v2_max, v3_max
+        # H, S, V (min) | H, S, V (max)

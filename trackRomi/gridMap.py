@@ -44,30 +44,31 @@ def weightImage(image, x, y, gridsize):
         return 1
 
 
-nameOfImg = 'Photos/WellDoneMap2.jpg'
+# nameOfImg = 'Photos/WellDoneMap2.jpg'
+def gridMapping(nameOfImg):
+    img = cv2.imread(nameOfImg)
+    img = cv2.resize(img, (810, 1080))
+    blankImg = np.zeros((1080,810,3), np.uint8)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-img = cv2.imread(nameOfImg)
-img = cv2.resize(img, (810, 1080))
-blankImg = np.zeros((1080,810,3), np.uint8)
-gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    edges = cv2.Canny(gray, 75, 150)
 
-edges = cv2.Canny(gray, 75, 150)
+    minLineLength = 50
 
-minLineLength = 50
-
-lines = cv2.HoughLinesP(edges, 1, np.pi/180, minLineLength, maxLineGap=80)
-for line in lines:
-    x1, y1, x2, y2 = line[0]
-    cv2.line(blankImg, (x1, y1), (x2, y2), (0, 255, 0), 3)
+    lines = cv2.HoughLinesP(edges, 1, np.pi/180, minLineLength, maxLineGap=80)
+    for line in lines:
+        x1, y1, x2, y2 = line[0]
+        cv2.line(blankImg, (x1, y1), (x2, y2), (0, 255, 0), 3)
 
 
-[dividedImage, weightSum] = subdivide(blankImg)
+    [dividedImage, weightSum] = subdivide(blankImg)
 
-cv2.imshow("Edges", img)
-cv2.imshow("Subdivided", dividedImage)
-print(weightSum)
+    cv2.imshow("Edges", img)
+    cv2.imshow("Subdivided", dividedImage)
+    print(weightSum)
 
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    return weightSum
 
 
