@@ -236,33 +236,32 @@ void SensorsTask() {
 }
 
 void PrintTask() {
-  Pose.printPose();
-    // Serial.print(" ");
-    // Serial.print("[");
-    // Serial.print(Pose.getX());
-    // Serial.print(", ");
-    // Serial.print(Pose.getY());
-    // Serial.print(", ");
-    // Serial.print(Pose.getThetaRadians());
-    // Serial.print("] [(");
-    // Serial.print(Pose.getLeftVelocity());
-    // Serial.print(", ");
-    // Serial.print(Pose.getRightVelocity());
-    // Serial.print(") (");
-    // Serial.print(left_speed_demand);
-    // Serial.print(", ");
-    // Serial.print(right_speed_demand);
-    // Serial.print(")] [");
-    // Serial.print(DistanceSensor.readCalibrated());
-    // Serial.print(", ");
-    // Serial.print(Mag.orientation);
-    // Serial.print(", ");
-    // Serial.print(_imu.gz);
-    // Serial.print("] (");
-    // Serial.print(x_goal);
-    // Serial.print(", ");
-    // Serial.print(y_goal);
-    // Serial.println("]");
+    Serial.print(" ");
+    Serial.print("[");
+    Serial.print(Pose.getX());
+    Serial.print(", ");
+    Serial.print(Pose.getY());
+    Serial.print(", ");
+    Serial.print(Pose.getThetaRadians());
+    Serial.print("] [(");
+    Serial.print(Pose.getLeftVelocity());
+    Serial.print(", ");
+    Serial.print(Pose.getRightVelocity());
+    Serial.print(") (");
+    Serial.print(left_speed_demand);
+    Serial.print(", ");
+    Serial.print(right_speed_demand);
+    Serial.print(")] [");
+    Serial.print(DistanceSensor.readCalibrated());
+    Serial.print(", ");
+    Serial.print(Mag.headingFiltered());
+    Serial.print(", ");
+    Serial.print(_imu.gz);
+    Serial.print("] (");
+    Serial.print(x_goal);
+    Serial.print(", ");
+    Serial.print(y_goal);
+    Serial.println("]");
 }
 
 void ControlSpeed() {
