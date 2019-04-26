@@ -47,18 +47,18 @@ p = plot(x_init+0.5,y_init+0.5,'bo');
 pause(2)
 
 %%
-heading = 1;
+heading = 2;
 x = 2;
 y = 2;
-while x<24
+while (x~=0&&y~=0)
     sensors = check_sensors(x,y,heading,MAP);
     MAP_R = mapping(x,y,heading,sensors,MAP_R);
-    [x,y,heading] = move(x,y,heading,sensors);
+    [x,y,heading,flag] = move(x,y,heading,sensors,MAP_R,flag);
     %pause(.25);
     set(p,'XData',x+0.5,'YData',y+0.5);
     xlabel(heading,'Color','blue');
     drawnow ;
-end
+ end
 
 figure(2)
 [m,n] = size(MAP);
@@ -66,13 +66,16 @@ figure(2)
  for i=1:1:m
      for j=1:1:n
          if MAP_R(i,j)==0
-             plot(i+0.5,j+0.5,'bo');
+             plot(i+0.5,j+0.5,'b*');
          end
          if MAP_R(i,j)==1
-             plot(i+0.5,j+0.5,'b*');
+             plot(i+0.5,j+0.5,'bo');
          end
          if MAP_R(i,j)==2
              plot(i+0.5,j+0.5,'r*');
+         end
+         if MAP_R(i,j)==3
+             plot(i+0.5,j+0.5,'ro');
          end
          hold on;
      end
