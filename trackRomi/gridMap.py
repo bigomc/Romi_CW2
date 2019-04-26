@@ -3,24 +3,26 @@ import numpy as np
 
 
 def subdivide(image, inRomi):
-    gridsize = 625
+
     outputimage = image
     rows, cols, chann = image.shape
+    gridsize_y = round(rows/25)
+    gridsize_x = round(cols/25)
     x = 0
     y = 0
     weight = 0
-    while(y<rows-gridsize):
+    while(y<rows-gridsize_y):
         x = 0
-        while(x<cols-gridsize):
+        while(x<cols-gridsize_x):
             k = x*y+x
-            cv2.rectangle(outputimage, (x,y), (x+gridsize,y+gridsize), (0, 0, 255), 1)
-            weight += weightImage(outputimage, x , y, gridsize, inRomi)
-            x += gridsize
-        y += gridsize
+            cv2.rectangle(outputimage, (x,y), (x+gridsize_x,y+gridsize_y), (0, 0, 255), 1)
+            weight += weightImage(outputimage, x , y, gridsize_x, gridsize_y, inRomi)
+            x += gridsize_x
+        y += gridsize_y
     return [outputimage, weight]
 
-def weightImage(image, x, y, gridsize, inRomi):
-    auximage = image[x:x + gridsize, y:y + gridsize]
+def weightImage(image, x, y, gridsize_x, gridsize_y, inRomi):
+    auximage = image[x:x + gridsize_x, y:y + gridsize_y]
     # grab the image dimensions
     h = auximage.shape[0]
     w = auximage.shape[1]
@@ -86,6 +88,6 @@ def gridMapping(nameOfImg, inRomi):
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-    return weightSum
+    return dividedImage, weightSum
 
 

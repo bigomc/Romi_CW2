@@ -35,15 +35,10 @@ def get_arguments(imagename):
                     help='Use webcam', action='store_true')
     ap.add_argument("-v", "--video",
                     help="path to the (optional) video file")
-    args = vars(ap.parse_args())
+    args1 = vars(ap.parse_args())
 
-    if not xor(bool(args['image']), bool(args['webcam'])):
-        ap.error("Please specify only one image source")
 
-    if not args['filter'].upper() in ['RGB', 'HSV']:
-        ap.error("Please speciy a correct filter.")
-
-    return args
+    return args1
 
 
 def get_trackbar_values(range_filter):
@@ -58,16 +53,12 @@ def get_trackbar_values(range_filter):
 
 
 def rangefinder(imagename):
-    args = get_arguments(imagename)
 
-    range_filter = args['filter'].upper()
+    range_filter = 'HSV'
 
     image = imagename
 
-    if range_filter == 'RGB':
-        frame_to_thresh = image.copy()
-    else:
-        frame_to_thresh = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    frame_to_thresh = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
     setup_trackbars(range_filter)
 
