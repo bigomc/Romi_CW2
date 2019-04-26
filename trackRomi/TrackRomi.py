@@ -7,33 +7,42 @@ import cv2
 import imutils
 import time
 import rangeFinder
+import gridMap
+import croppingExample
 
 # construct the argument parse and parse the arguments
 
 
 ap = argparse.ArgumentParser()
+ap.add_argument("-m", "--map", required=True,
+                help="path to the map without romi image file")
 ap.add_argument("-i", "--image", required=True,
                 help="path to the calibration image file")
-ap.add_argument("-v", "--video",
+ap.add_argument("-v", "--video", required = True,
                 help="path to the (optional) video file")
-ap.add_argument("-b", "--buffer", type=int, default=512,
+ap.add_argument("-b", "--buffer", type=int, default=2048,
                 help="max buffer size")
 args = vars(ap.parse_args())
 
+print("Making the initial map with points")
+[baseImg, baseSum] = gridMap.gridMapping(cv2.imread(args['map']), False)
+print("The base points that romi is required to complete are {0}".format(baseSum))
 
-rangeFinder.rangefinder(args['image'])
+print("Region of interest for romi detecion: \nPress r to reset \n Press c if you are happy!")
+[roi, p1, p2, p3, p4] = croppingExample.get_cropping_map(cv2.imread(args['image']))
 
-# define the lower and upper boundaries of the "green"
-# ball in the HSV color space, then initialize the
+print("Press 's' if you are happy with the range")
+H_min, S_min, V_min, H_max, S_max, V_max = rangeFinder.rangefinder(roi)# H, S, V (min) | H, S, V (max)
+# keep going with "s"
+
+
+# define the lower and upper boundaries for the object to track HSV color space, then initialize the
 # list of tracked points
 
-##these values give the blue romi color
-#blueLower = (101, 117, 54)
-#blueUpper = (132, 217, 160)
-blueLower = (63, 52, 80)
-blueUpper = (141, 216, 255)
+##these values give the romi color
+HSV_Lower = (H_min, S_min, V_min)
+HSV_Upper = (H_max, S_max, V_max)
 ####
-###get values of the red romi
 
 pts = deque(maxlen=args["buffer"])
 
@@ -51,30 +60,28 @@ time.sleep(2.0)
 
 frame = vs.read()
 frame = frame[1] if args.get("video", False) else frame
+print("Region of interest to crop the map: \nPress r to reset \n Press c if you are happy!")
+[roi, p1, p2, p3, p4] = croppingExample.get_cropping_map(frame)
+
+frame = croppingExample.map_cropped(roi, p1, p2, p3, p4)
 # keep looping
 while (frame is not None):
     # if we are viewing a video and we did not grab a frame,
     # then we have reached the end of the video
 
-    # grab the current frame
-    frame = vs.read()
-
-    # handle the frame from VideoCapture or VideoStream
-    frame = frame[1] if args.get("video", False) else frame
-
-
-
-
     # resize the frame, blur it, and convert it to the HSV
     # color space
-    frame = imutils.resize(frame, width=600)
+    # frame = imutils.resize(frame, width=600)
+    frame = croppingExample.map_cropped(frame, p1, p2, p3, p4)  ## roi
+    goalImg = frame
+
     blurred = cv2.GaussianBlur(frame, (11, 11), 0)
     hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
     # construct a mask for the color "green", then perform
     # a series of dilations and erosions to remove any small
     # blobs left in the mask
-    mask = cv2.inRange(hsv, blueLower, blueUpper)
+    mask = cv2.inRange(hsv, HSV_Lower, HSV_Upper)
     mask = cv2.erode(mask, None, iterations=2)
     mask = cv2.dilate(mask, None, iterations=2)
 
@@ -116,9 +123,8 @@ while (frame is not None):
         if pts[i - 1] is None or pts[i] is None:
             continue
 
-        # otherwise, compute the thickness of the line and
-        # draw the connecting lines
-        thickness = int(np.sqrt(args["buffer"] / float(i + 1)) * 2.5)
+
+        thickness = 5
         cv2.line(frame, pts[i - 1], pts[i], (0, 0, 255), thickness)
 
     # show the frame to our screen
@@ -127,6 +133,11 @@ while (frame is not None):
     # if the 'q' key is pressed, stop the loop
     if (key == ord("q")):
         break
+    # grab the current frame
+    frame = vs.read()
+
+    # handle the frame from VideoCapture or VideoStream
+    frame = frame[1] if args.get("video", False) else frame
 
 
 
@@ -138,5 +149,15 @@ if not args.get("video", False):
 else:
     vs.release()
 
+print("making the grid")
+
+[visitedImg, visitedPoints] = gridMap.gridMapping(goalImg, True)
+
+print("Now we can compare both images")
+
+cv2.imshow("Base Image", baseImg)
+cv2.imshow("Visited Image", visitedImg)
+
+cv2.waitKey(0)
 # close all windows
 cv2.destroyAllWindows()
