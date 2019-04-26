@@ -63,10 +63,6 @@ void Mapper::updateMapFeature(byte feature, int y, int x)
 {
     if (x > MAP_X || x < 0 || y > MAP_Y || y < 0)
     {
-      Serial.println(F("Error:Invalid co-ordinate"));
-      Serial.print(x);
-      Serial.print(F(" "));
-      Serial.println(y);
       return;
     }
 

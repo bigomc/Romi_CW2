@@ -63,10 +63,10 @@ Motor         LeftMotor(MOTOR_PWM_L, MOTOR_DIR_L);
 Motor         RightMotor(MOTOR_PWM_R, MOTOR_DIR_R);
 
 //These work for our Romi - We strongly suggest you perform your own tuning
-PID           LeftSpeedControl( 5, 0, 1 );
-PID           RightSpeedControl( 5, 0, 1 );
+PID           LeftSpeedControl( 10, 0.1, 1 );
+PID           RightSpeedControl( 10, 0.1, 1 );
 PID           HeadingControl( 5, 0, 1 );
-PID           TurningControl( 5, 0, 2 );
+PID           TurningControl( 3, 0, 2 );
 
 Mapper        Map; //Class for representing the map
 
@@ -86,14 +86,11 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
  float y_error;
  float orientation_error;
  float position_error;
- const float Ks = 0.1;
+ const float Ks = 0.5;
 
  // Planning Variables
  bool goal_reached = false;
- const Point_t points[] = {{36, 1764}, {108, 36}, {180, 1764}, {252, 36},
-                        {324, 1764}, {396, 36}, {468, 1764}, {540, 36},
-                        {614, 1764}, {684, 36}, {756, 1764}, {828, 36},
-                        {900, 1764}, {972, 36}, {1044, 1764}, {1116, 36}};
+ const Point_t points[] = {{700, 900}, {36, 1764}, {36, 36}, {1764, 36}};
  int point_index = 0;
 
 //Use these variables to set the demand of the speed controller
@@ -133,7 +130,6 @@ void setup()
   // the current map.
   ButtonB.waitForButton();
   Map.printMap();
-  Map.resetMap();
 
   // Set the initial goal point
   x_goal = points[point_index].x;
@@ -156,8 +152,8 @@ void setup()
   Mag.init();
   Serial.println("Press button to calibrate Magnetometer");
   ButtonB.waitForButton();
-  LeftMotor.setPower(40);
-  RightMotor.setPower(-40);
+  LeftMotor.setPower(30);
+  RightMotor.setPower(-30);
   Mag.calibrate();
   LeftMotor.setPower(0);
   RightMotor.setPower(0);
@@ -175,7 +171,8 @@ void setup()
 
   // Your extra setup code is best placed here:
   // ...
-  Mag.setOrientationOffset();
+  Map.resetMap();
+  Mag.set_zero();
   // ...
   // but not after the following:
 
@@ -185,8 +182,10 @@ void setup()
   // initialised, which will cause a big intergral term.
   // If you don't do this, you'll see the Romi accelerate away
   // very fast!
-    HeadingControl.setMax(VMAX);
+    HeadingControl.setMax(2 * VMAX);
     TurningControl.setMax(VMAX);
+    LeftSpeedControl.setMax(2 * VMAX);
+    RightSpeedControl.setMax(2 * VMAX);
     TurningControl.reset();
     HeadingControl.reset();
     LeftSpeedControl.reset();
@@ -197,12 +196,12 @@ void setup()
 
     createTask(UpdateTask, SAMPLING_TICK_PERIOD);
     createTask(ControlSpeed, 10);
-    //createTask(ControlPosition, 10);
-    //createTask(PlanningTask, 40);
-    createTask(doMovement, 20);
+    createTask(ControlPosition, 10);
+    //createTask(doMovement, 20);
     //createTask(doTurn, 40);
-    createTask(SensorsTask, 20);
+    createTask(SensorsTask, 50);
     createTask(MappingTask, 50);
+    createTask(PlanningTask, 100);
     createTask(PrintTask, 500);
     count_mapping = millis ();
 }
@@ -270,6 +269,9 @@ void ControlSpeed() {
     if(!stop_mapping && !heading){ //
         float left_speed_control_signal = LeftSpeedControl.update(left_speed_demand, Pose.getLeftVelocity());
         float right_speed_control_signal = RightSpeedControl.update(right_speed_demand, Pose.getRightVelocity());
+        left_speed_control_signal += (6.66 * left_speed_demand);
+        right_speed_control_signal += (6.66 * right_speed_demand);
+
         LeftMotor.setPower(left_speed_control_signal);
         RightMotor.setPower(right_speed_control_signal);
     } else if (stop_mapping) {
@@ -293,6 +295,12 @@ void ControlPosition() {
 
     position_error = sqrt(x_error*x_error + y_error*y_error);
     orientation_error = atan2(y_error, x_error) - Pose.getThetaRadians();
+    if(orientation_error < -PI ){
+        orientation_error += (2 * PI);
+    }
+    if(orientation_error > PI){
+        orientation_error -= (2 * PI);
+    }
 
     if(position_error > 50) {
         sat = min(Ks, max(-Ks, orientation_error));
