@@ -84,7 +84,7 @@ def gridMapping(nameOfImg, inRomi):
 
     cv2.imshow("Edges", img)
     cv2.imshow("Subdivided", dividedImage)
-    print(weightSum)
+    # print(weightSum)
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()

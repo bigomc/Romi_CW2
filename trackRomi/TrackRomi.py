@@ -153,5 +153,11 @@ print("making the grid")
 
 [visitedImg, visitedPoints] = gridMap.gridMapping(goalImg, True)
 
+print("Now we can compare both images")
+
+cv2.imshow("Base Image", baseImg)
+cv2.imshow("Visited Image", visitedImg)
+
+cv2.waitKey(0)
 # close all windows
 cv2.destroyAllWindows()
