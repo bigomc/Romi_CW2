@@ -14,6 +14,12 @@ Kinematics::Kinematics(void)
 
 void Kinematics::update()
 {
+	if(!initialised) {
+		initialised = true;
+
+		enableInterrupts();
+	}
+	
     //Calculate delta since last update
     int16_t left_count = getCountLeft();
     int16_t right_count = getCountRight();

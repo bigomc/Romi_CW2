@@ -22,6 +22,8 @@ extern "C" {
 #define L_PWM_PIN 10
 #define L_DIR_PIN 16
 
+    void enableInterrupts();
+    void disableInterrupts();
     void setupEncoders();
     long getCountRight();
     long getCountLeft();

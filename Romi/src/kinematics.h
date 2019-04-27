@@ -41,7 +41,7 @@ class Kinematics
          float  right_angular_velocity = 0;
          bool  debug=false;
          unsigned long last_update = 0;
-
+         bool initialised = false;
 };
 
 #endif
