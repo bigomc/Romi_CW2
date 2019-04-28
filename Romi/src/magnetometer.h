@@ -21,7 +21,7 @@ class Magnetometer
         float x = 0;
         float y = 0;
         float z = 0;
-        float alpha = 0.7;
+        float alpha = 0.2;
 
     private:
         float sensitivity = 1.0/6842.0; //default sensitivity for +/-4 Gauss
