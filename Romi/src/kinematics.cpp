@@ -24,7 +24,7 @@ void Kinematics::update()
 
 		enableInterrupts();
 	}
-	
+
     //Calculate delta since last update
     int16_t left_count = getCountLeft();
     int16_t right_count = getCountRight();
@@ -88,13 +88,14 @@ void Kinematics::sensorFusion(){
 	complementary_heading = (1-alpha)*(complementary_heading + (Imu.gz*time_elapsed*0.001))+alpha*(heading_mag); //Complementary filter - Degrees
 
 	//Wrapping angle value
+	float offset = 0;
 	if(complementary_heading < -180){
-			complementary_heading = 360 + complementary_heading;
+			offset = 360;
 			}
 	if(complementary_heading > 180){
-			complementary_heading = complementary_heading - 360;
+			offset = - 360;
 			}
-
+	complementary_heading += offset;
 	//Serial.print("complementary_heading: ");
 	//Serial.println(complementary_heading);
 
@@ -109,10 +110,20 @@ void Kinematics::sensorFusion(){
 
 float Kinematics::getThetaDegrees()
 {
+    return rad2deg(theta);
+}
+
+float Kinematics::getTheta_fDegrees()
+{
     return theta_f;
 }
 
 float Kinematics::getThetaRadians()
+{
+    return theta;
+}
+
+float Kinematics::getTheta_fRadians()
 {
     return deg2rad(theta_f);
 }

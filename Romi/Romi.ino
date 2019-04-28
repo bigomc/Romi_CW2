@@ -248,7 +248,7 @@ void PrintTask() {
     Serial.print(", ");
     Serial.print(Pose.getY());
     Serial.print(", ");
-    Serial.print(Pose.getThetaRadians());
+    Serial.print(Pose.getThetaDegrees());
     Serial.print("] [(");
     Serial.print(Pose.getLeftVelocity());
     Serial.print(", ");
@@ -260,7 +260,7 @@ void PrintTask() {
     Serial.print(")] [");
     Serial.print(DistanceSensor.readCalibrated());
     Serial.print(", ");
-    Serial.print(Mag.headingFiltered());
+    Serial.print(Pose.getTheta_fDegrees());
     Serial.print(", ");
     Serial.print(Imu.gz);
     Serial.print("] (");

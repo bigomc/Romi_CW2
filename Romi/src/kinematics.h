@@ -30,6 +30,8 @@ class Kinematics
          float getRightVelocity();
          long  angle2counts(float ang);
          void  sensorFusion();
+         float getTheta_fDegrees();
+         float getTheta_fRadians();
 
     private:
 
