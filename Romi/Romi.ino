@@ -35,7 +35,12 @@
 #define MAX_VELOCITY    3
 #define TIME_LIMIT  100000
 #define LINE_CONFIDENCE 70
+#define VMAX    3
 
+struct Point_tag {
+    float x;
+    float y;
+} typedef Point_t;
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Class Instances.                                                              *
@@ -58,9 +63,10 @@ Motor         LeftMotor(MOTOR_PWM_L, MOTOR_DIR_L);
 Motor         RightMotor(MOTOR_PWM_R, MOTOR_DIR_R);
 
 //These work for our Romi - We strongly suggest you perform your own tuning
-PID           LeftSpeedControl( 1.5, 20, 0.001 );
-PID           RightSpeedControl( 1.5, 20, 0.001 );
-PID           HeadingControl( 0.02, 0.15, 0.0001 );
+PID           LeftSpeedControl( 10, 0.1, 1 );
+PID           RightSpeedControl( 10, 0.1, 1 );
+PID           HeadingControl( 5, 0, 1 );
+PID           TurningControl( 3, 0, 2 );
 
 Mapper        Map; //Class for representing the map
 
@@ -73,12 +79,26 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
  *                                                                               *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+ // Variables of the position goal
+ float x_goal;
+ float y_goal;
+ float x_error;
+ float y_error;
+ float orientation_error;
+ float position_error;
+ const float Ks = 0.5;
+
+ // Planning Variables
+ bool goal_reached = false;
+ const Point_t points[] = {{700, 900}, {36, 1764}, {36, 36}, {1764, 36}};
+ int point_index = 0;
+
 //Use these variables to set the demand of the speed controller
  float left_speed_demand = 0;
  float right_speed_demand = 0;;
 
 //Mapping variables
-unsigned long count_mapping =0;
+unsigned long count_mapping = 0;
 bool stop_mapping = false;
 
 //Heading Flag
@@ -104,12 +124,25 @@ void setup()
   Serial.begin( BAUD_RATE );
   delay(1000);
 
-  Serial.print("Press button to start: ");
+  Serial.println("Board Reset");
+
+  // Romi will wait for you to press a button and then print
+  // the current map.
   ButtonB.waitForButton();
+  Map.printMap();
+
+  // Set the initial goal point
+  x_goal = points[point_index].x;
+  y_goal = points[point_index].y;
 
   //Setup RFID card
   //setupRFID();
 
+  // Calibration code
+  Serial.println("Calibrating line sensors");
+  LineCentre.calibrate();
+  LineLeft.calibrate();
+  LineRight.calibrate();
 
   // The magnetometer calibration routine require you to move
   // your robot around  in space.
@@ -124,10 +157,9 @@ void setup()
   Mag.init();
   Serial.println("Press button to calibrate Magnetometer");
   ButtonB.waitForButton();
-  LeftMotor.setPower(40);
-  RightMotor.setPower(-40);
+  LeftMotor.setPower(30);
+  RightMotor.setPower(-30);
   Mag.calibrate();
-
   LeftMotor.setPower(0);
   RightMotor.setPower(0);
 
@@ -135,34 +167,14 @@ void setup()
   // from A0, which should itself be quite random.
   randomSeed(analogRead(A0));
 
-  Serial.println("Calibrating line sensors");
-  LineCentre.calibrate();
-  LineLeft.calibrate();
-  LineRight.calibrate();
-
-  Serial.println("Board Reset");
-// Romi will wait for you to press a button and then print
-// the current map.
-//
-// !!! A second button press will erase the map !!!
-  ButtonB.waitForButton(); //Useful if we want to check last map before erasing
-  Map.printMap();
-  ButtonB.waitForButton(); //Useful if we want to check last map before erasing
-
-  Map.resetMap();
-  Map.printMap();
-  Serial.println("Map Erased - Waiting for start");
-
   //// Watch for second button press, then begin autonomous mode.
+  Serial.println("Press button to begin autonomous mode");
   ButtonB.waitForButton();
 
   // Your extra setup code is best placed here:
   // ...
+  Map.resetMap();
   Mag.set_zero();
-
-  //Initialize Pose
-  Pose.resetPose();
-  Pose.printPose();
   // ...
   // but not after the following:
 
@@ -172,6 +184,12 @@ void setup()
   // initialised, which will cause a big intergral term.
   // If you don't do this, you'll see the Romi accelerate away
   // very fast!
+    HeadingControl.setMax(2 * VMAX);
+    TurningControl.setMax(VMAX);
+    LeftSpeedControl.setMax(2 * VMAX);
+    RightSpeedControl.setMax(2 * VMAX);
+    TurningControl.reset();
+    HeadingControl.reset();
     LeftSpeedControl.reset();
     RightSpeedControl.reset();
 
@@ -180,11 +198,13 @@ void setup()
 
     createTask(UpdateTask, SAMPLING_TICK_PERIOD);
     createTask(ControlSpeed, 10);
-    createTask(doMovement, 20);
-    createTask(doTurn, 40);
-    createTask(SensorsTask, 20);
+    createTask(ControlPosition, 10);
+    //createTask(doMovement, 20);
+    //createTask(doTurn, 40);
+    createTask(SensorsTask, 50);
     createTask(MappingTask, 50);
-    createTask(PrintTask, 200);
+    createTask(PlanningTask, 100);
+    createTask(PrintTask, 500);
     count_mapping = millis ();
 }
 
@@ -219,49 +239,109 @@ void SensorsTask() {
 
 }
 
+
+
 void PrintTask() {
-	Pose.printPose();
-  //float heading_mag = Mag.headingFiltered();
-  //Serial.println(heading_mag);
-    /*Serial.print(Pose.getLeftVelocity());
     Serial.print(" ");
+    Serial.print("[");
+    Serial.print(Pose.getX());
+    Serial.print(", ");
+    Serial.print(Pose.getY());
+    Serial.print(", ");
+    Serial.print(Pose.getThetaRadians());
+    Serial.print("] [(");
+    Serial.print(Pose.getLeftVelocity());
+    Serial.print(", ");
     Serial.print(Pose.getRightVelocity());
-    Serial.print(" ");
+    Serial.print(") (");
+    Serial.print(left_speed_demand);
+    Serial.print(", ");
+    Serial.print(right_speed_demand);
+    Serial.print(")] [");
     Serial.print(DistanceSensor.readCalibrated());
-    Serial.print(" [");
-    Serial.print(LineLeft.readCalibrated());
     Serial.print(", ");
-    Serial.print(LineCentre.readCalibrated());
+    Serial.print(Mag.headingFiltered());
     Serial.print(", ");
-    Serial.print(LineRight.readCalibrated());
+    Serial.print(Imu.gz);
     Serial.print("] (");
-    Serial.print(Mag.orientation);
-    Serial.println(")");
+    Serial.print(x_goal);
+    Serial.print(", ");
+    Serial.print(y_goal);
     Serial.println("]");
-	Serial.print("IMU: [");
-	Serial.print(_imu.gx);
-	Serial.print(", ");
-	Serial.print(_imu.gy);
-	Serial.print(", ");
-	Serial.print(_imu.gz);
-	Serial.print(", ");
-	Serial.print(_imu.ax);
-	Serial.print(", ");
-	Serial.print(_imu.ay);
-	Serial.print(", ");
-	Serial.print(_imu.az);
-	Serial.println*/
 }
 
 void ControlSpeed() {
     if(!stop_mapping && !heading){ //
         float left_speed_control_signal = LeftSpeedControl.update(left_speed_demand, Pose.getLeftVelocity());
         float right_speed_control_signal = RightSpeedControl.update(right_speed_demand, Pose.getRightVelocity());
+        left_speed_control_signal += (6.66 * left_speed_demand);
+        right_speed_control_signal += (6.66 * right_speed_demand);
+
         LeftMotor.setPower(left_speed_control_signal);
         RightMotor.setPower(right_speed_control_signal);
     } else if (stop_mapping) {
         LeftMotor.setPower(0);
         RightMotor.setPower(0);
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+* This function controls the left and right velocities in order to make romi
+* arrive to a goal position
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+void ControlPosition() {
+    float sat;
+    float offset = 0;
+    float turning;
+    float ahead;
+
+    x_error = x_goal - Pose.getX();
+    y_error = y_goal - Pose.getY();
+
+    position_error = sqrt(x_error*x_error + y_error*y_error);
+    orientation_error = atan2(y_error, x_error) - Pose.getThetaRadians();
+    if(orientation_error < -PI ){
+        orientation_error += (2 * PI);
+    }
+    if(orientation_error > PI){
+        orientation_error -= (2 * PI);
+    }
+
+    if(position_error > 50) {
+        sat = min(Ks, max(-Ks, orientation_error));
+
+        turning = TurningControl.update(orientation_error, 0);
+        ahead = HeadingControl.update(position_error, 0);
+        ahead *= (1 - (abs(sat) / Ks));
+
+        left_speed_demand = ahead - turning;
+        right_speed_demand = ahead + turning;
+    } else {
+        goal_reached = true;
+
+        left_speed_demand = 0;
+        right_speed_demand = 0;
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+* This function iterates over a list of points or coordetates to change the
+* goal position and make Romi explore the map
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+void PlanningTask() {
+    int size = sizeof(points)/sizeof(Point_t);
+
+    // Changes the goal when the current goal has reached
+    if(goal_reached) {
+
+        // Verify the size of the goals
+        if(point_index < (size - 1)) {
+            goal_reached = false;
+
+            point_index++;
+            x_goal = points[point_index].x;
+            y_goal = points[point_index].y;
+        }
     }
 }
 

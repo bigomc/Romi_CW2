@@ -147,6 +147,16 @@ ISR( PCINT0_vect ) {
     oldE0_B = newE0_B;
 }
 
+void enableInterrupts() {
+    EIMSK |= ( 1 << INT6 );
+    PCICR |= (1 << PCIE0);
+}
+
+void disableInterrupts() {
+    EIMSK &= ~( 1 << INT6 );
+    PCICR &= ~(1 << PCIE0);
+}
+
 void setupEncoders() {
     pinMode( L_PWM_PIN, OUTPUT );
     pinMode( L_DIR_PIN, OUTPUT );

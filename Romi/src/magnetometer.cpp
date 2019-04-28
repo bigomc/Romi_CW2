@@ -2,7 +2,6 @@
 #include "pins.h"
 #include <Arduino.h>
 #include "utils.h"
-#include <Wire.h>
 
 void Magnetometer::init()
 {
@@ -17,43 +16,42 @@ void Magnetometer::init()
     //mag.writeReg(LIS3MDL::CTRL_REG4,0b00001000);  //Setting high performance mode with 300Hz ODR axis Z
 }
 
+void Magnetometer::read()
+{
+    mag.read();
+}
+
 void Magnetometer::readRaw()
 {
-
-  mag.read();
-
   x = mag.m.x;
   y = mag.m.y;
   z = mag.m.z;
-
 }
 
 void Magnetometer::readCalibrated()
 {
-
     mag.read();
-
     x = sensitivity * (mag.m.x - x_offset) * x_scale;
     y = sensitivity * (mag.m.y - y_offset) * y_scale;
     z = sensitivity * (mag.m.z - z_offset) * z_scale;
-
 }
 
 void Magnetometer::calibrate()
 {
-  analogWrite(BUZZER_PIN, 10);
-  delay(100);analogWrite(BUZZER_PIN, 0);
-  delay(100);
-  analogWrite(BUZZER_PIN, 10);
-  delay(100);analogWrite(BUZZER_PIN, 0);
-  delay(100);
-  analogWrite(BUZZER_PIN, 10);
-  delay(100);analogWrite(BUZZER_PIN, 0);
-  delay(100);
+    delay(1000);
 
-  for (int i=0;i<NUM_CALIBRATIONS_MAG;i++)
-  {
-        analogWrite(BUZZER_PIN, 10);
+    analogWrite(BUZZER_PIN, 10);
+    delay(500);
+    digitalWrite( BUZZER_PIN, LOW );
+    delay(500);
+    analogWrite(BUZZER_PIN, 10);
+    delay(500);
+    digitalWrite( BUZZER_PIN, LOW );
+    delay(500);
+
+    for (int i=0;i<NUM_CALIBRATIONS_MAG;i++)
+    {
+        //analogWrite(BUZZER_PIN, 10);
         delay(30);
 
         mag.read();
@@ -68,9 +66,9 @@ void Magnetometer::calibrate()
 
         analogWrite(BUZZER_PIN, 0);
         delay(50);
-  }
+    }
 
-  calculateOffsets();
+    calculateOffsets();
 }
 
 void Magnetometer::calculateOffsets()
@@ -93,9 +91,10 @@ void Magnetometer::calculateOffsets()
 }
 
 void Magnetometer::set_zero() {
+    heading_mag_zero = 0;
     for(int i = 0; i < 10; i++) {
-      readCalibrated();
-      heading_mag_zero += atan2(y,x);
+        readCalibrated();
+        heading_mag_zero += atan2(y,x);
     }
     heading_mag_zero /= 10.0;
 }
@@ -103,18 +102,21 @@ void Magnetometer::set_zero() {
 
 float Magnetometer::getHeading()
 {
-  //readCalibrated();
-  heading = heading_mag_zero - atan2(y,x); //Relative to start position
+    double aux = 0;
 
-  //Adjusting angle value
-  if(heading < -PI){
-    heading = 2*PI + heading;
-  }
-  if(heading > PI){
-    heading = heading - 2*PI;
-  }
+    //readCalibrated();
+    heading = heading_mag_zero - atan2(y,x); //Relative to start position
 
-  return rad2deg(heading);
+    //Adjusting angle value
+    if(heading < -PI){
+        aux = 2 * PI;
+    }
+    if(heading > PI){
+        aux = - 2 * PI;
+    }
+    heading += aux;
+
+    return rad2deg(heading);
 }
 
 

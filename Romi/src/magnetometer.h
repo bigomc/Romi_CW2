@@ -9,6 +9,7 @@ class Magnetometer
 {
     public:
         void init();
+        void read();
         void  readRaw();
         void  readCalibrated();
         void  calibrate();
@@ -20,10 +21,6 @@ class Magnetometer
         float x = 0;
         float y = 0;
         float z = 0;
-        float heading = 0;
-        float heading_mag_zero = 0;
-        float heading_filter_mag = 0;
-        float last_heading = 0;
         float alpha = 0.2;
 
     private:
@@ -40,7 +37,10 @@ class Magnetometer
         float x_scale = 0;
         float y_scale = 0;
         float z_scale = 0;
-        
+        float heading = 0;
+        float heading_mag_zero = 0;
+        float heading_filter_mag = 0;
+        float last_heading = 0;
 };
 
 #endif

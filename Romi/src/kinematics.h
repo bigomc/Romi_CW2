@@ -52,6 +52,7 @@ class Kinematics
          float h = 0.0001;
          float g = 0.1;
          float theta_f = 0;
+         bool initialised = false;
 
 };
 
