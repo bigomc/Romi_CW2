@@ -13,20 +13,18 @@ import croppingExample
 # construct the argument parse and parse the arguments
 
 
+
 ap = argparse.ArgumentParser()
-ap.add_argument("-m", "--map", required=True,
-                help="path to the map without romi image file")
+# ap.add_argument("-m", "--map", required=True,
+#                 help="path to the map without romi image file")
 ap.add_argument("-i", "--image", required=True,
                 help="path to the calibration image file")
 ap.add_argument("-v", "--video", required = True,
                 help="path to the (optional) video file")
-ap.add_argument("-b", "--buffer", type=int, default=2048,
+ap.add_argument("-b", "--buffer", type=int, default=32768,
                 help="max buffer size")
 args = vars(ap.parse_args())
 
-print("Making the initial map with points")
-[baseImg, baseSum] = gridMap.gridMapping(cv2.imread(args['map']), False)
-print("The base points that romi is required to complete are {0}".format(baseSum))
 
 print("Region of interest for romi detecion: \nPress r to reset \n Press c if you are happy!")
 [roi, p1, p2, p3, p4] = croppingExample.get_cropping_map(cv2.imread(args['image']))
@@ -64,6 +62,13 @@ print("Region of interest to crop the map: \nPress r to reset \n Press c if you 
 [roi, p1, p2, p3, p4] = croppingExample.get_cropping_map(frame)
 
 frame = croppingExample.map_cropped(roi, p1, p2, p3, p4)
+
+
+print("Making the initial map with points")
+[baseImg, baseSum] = gridMap.gridMapping(frame, False)
+print("The base points that romi is required to complete are {0}".format(baseSum))
+visitedImg = baseImg
+
 # keep looping
 while (frame is not None):
     # if we are viewing a video and we did not grab a frame,
@@ -78,7 +83,7 @@ while (frame is not None):
     blurred = cv2.GaussianBlur(frame, (11, 11), 0)
     hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
-    # construct a mask for the color "green", then perform
+    # construct a mask for the marked area, then perform
     # a series of dilations and erosions to remove any small
     # blobs left in the mask
     mask = cv2.inRange(hsv, HSV_Lower, HSV_Upper)
@@ -106,9 +111,15 @@ while (frame is not None):
         if radius > 5 and radius <10:
             # draw the circle and centroid on the frame,
             # then update the list of tracked points
-            cv2.circle(frame, (int(x), int(y)), int(radius),
-                       (0, 255, 255), 2)
-            cv2.circle(frame, center, 5, (0, 0, 255), -1)
+            # cv2.circle(frame, (int(x), int(y)), int(radius),
+            #            (0, 255, 255), 2)
+            # cv2.circle(frame, center, 5, (0, 0, 255), -1)
+
+            cv2.circle(frame, (int(x), int(y)), int(radius),(0, 255, 255), 2)
+            cv2.circle(visitedImg, center, 5, (0, 0, 255), -1)
+
+
+
 
     # update the points queue
     pts.appendleft(center)
@@ -125,7 +136,8 @@ while (frame is not None):
 
 
         thickness = 5
-        cv2.line(frame, pts[i - 1], pts[i], (0, 0, 255), thickness)
+        cv2.line(visitedImg, pts[i - 1], pts[i], (255, 0, 0), thickness)
+        cv2.line(frame, pts[i - 1], pts[i], (255, 0, 0), thickness)
 
     # show the frame to our screen
     cv2.imshow("Frame", frame)
@@ -151,12 +163,14 @@ else:
 
 print("making the grid")
 
-[visitedImg, visitedPoints] = gridMap.gridMapping(goalImg, True)
+[visitedImg, visitedPoints] = gridMap.subdivide(baseImg, True)
 
 print("Now we can compare both images")
 
 cv2.imshow("Base Image", baseImg)
 cv2.imshow("Visited Image", visitedImg)
+
+print("Required spaces to visit: ", baseSum, "\nVisited Spaces: ", visitedPoints)
 
 cv2.waitKey(0)
 # close all windows

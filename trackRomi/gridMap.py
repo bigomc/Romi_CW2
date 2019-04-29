@@ -37,10 +37,10 @@ def weightImage(image, x, y, gridsize_x, gridsize_y, inRomi):
                 bluepx = px[0]
                 greenpx = px[1]
                 redpx = px[2]
-                if(bluepx != 255 and greenpx != 255):
-                    weigthsum += 0
-                else:
+                if(bluepx <= 250 and greenpx <=250 and redpx<=250):
                     weigthsum += 1
+                else:
+                    weigthsum += 0
     else:
         for y in range(0, h):
             for x in range(0, w):
@@ -49,18 +49,18 @@ def weightImage(image, x, y, gridsize_x, gridsize_y, inRomi):
                 bluepx = px[0]
                 greenpx = px[1]
                 redpx = px[2]
-                if(bluepx != 255 and greenpx != 255):
+                if(bluepx <= 250 and greenpx <=250 and redpx<=250):
                     weigthsum += 0
                 else:
-                    if redpx != 0:
+                    if(bluepx>250):
                         weigthsum += 1
                     else:
                         weigthsum += 0
 
     if weigthsum > 0:
-        return 0
-    else:
         return 1
+    else:
+        return 0
 
 
 # nameOfImg = 'Photos/WellDoneMap2.jpg'
@@ -82,7 +82,7 @@ def gridMapping(nameOfImg, inRomi):
 
     [dividedImage, weightSum] = subdivide(blankImg, inRomi)
 
-    cv2.imshow("Edges", img)
+    # cv2.imshow("Edges", img)
     cv2.imshow("Subdivided", dividedImage)
     # print(weightSum)
 
