@@ -55,7 +55,7 @@ LineSensor    LineRight(LINE_RIGHT_PIN); //Right line sensor
 
 SharpIR       DistanceSensor(SHARP_IR_PIN); //Distance sensor
 
-Imu           Imu;
+Imu           _imu;
 
 Magnetometer  Mag; // Class for the magnetometer
 
@@ -147,13 +147,8 @@ void setup()
   // The magnetometer calibration routine require you to move
   // your robot around  in space.
   // See related lab sheets for more information.
-
-  Wire.begin();
-  Serial.println("Calibrating IMU");
-  Imu.init();
-  Imu.calibrate();
-
   Serial.println("Initialising Magnetometer");
+  Wire.begin();
   Mag.init();
   Serial.println("Press button to calibrate Magnetometer");
   ButtonB.waitForButton();
@@ -162,6 +157,9 @@ void setup()
   Mag.calibrate();
   LeftMotor.setPower(0);
   RightMotor.setPower(0);
+
+  _imu.init();
+  _imu.calibrate();
 
   // Set the random seed for the random number generator
   // from A0, which should itself be quite random.
@@ -222,8 +220,7 @@ void loop() {
 
 void UpdateTask() {
     Pose.update();
-    Pose.sensorFusion();
-    }
+}
 
 void SensorsTask() {
     // The aim of this task is to perform all sensor readings and only return
@@ -234,12 +231,9 @@ void SensorsTask() {
     LineCentre.read();
     LineLeft.read();
     LineRight.read();
-    Imu.readCalibrated();
     Mag.readCalibrated();
-
+    _imu.readFiltered();
 }
-
-
 
 void PrintTask() {
     Serial.print(" ");
@@ -248,7 +242,7 @@ void PrintTask() {
     Serial.print(", ");
     Serial.print(Pose.getY());
     Serial.print(", ");
-    Serial.print(Pose.getThetaDegrees());
+    Serial.print(Pose.getThetaRadians());
     Serial.print("] [(");
     Serial.print(Pose.getLeftVelocity());
     Serial.print(", ");
@@ -260,9 +254,9 @@ void PrintTask() {
     Serial.print(")] [");
     Serial.print(DistanceSensor.readCalibrated());
     Serial.print(", ");
-    Serial.print(Pose.getTheta_fDegrees());
+    Serial.print(Mag.headingFiltered());
     Serial.print(", ");
-    Serial.print(Imu.gz);
+    Serial.print(_imu.gz);
     Serial.print("] (");
     Serial.print(x_goal);
     Serial.print(", ");
@@ -365,51 +359,12 @@ void doMovement() {
     float turn_bias;
     int obs_dect = DistanceSensor.readRaw();
 
-//    if (!heading){
-//      forward_bias = MAX_VELOCITY;
-//      // Periodically set a random turn.
-//      // Here, gaussian means we most often drive
-//      // forwards, and occasionally make a big turn.
-//      if( millis() - walk_update > 500 ) {
-//          walk_update = millis();
-//          //randGaussian(mean, sd).  utils.h
-//          turn_bias = randGaussian(0, 6); //0
-//          // Setting a speed demand with these variables
-//          // is automatically captured by a speed PID
-//          // controller in timer3 ISR. Check interrupts.h
-//          // for more information.
-//          left_speed_demand = forward_bias + turn_bias;
-//          right_speed_demand = forward_bias - turn_bias;
-//        }
-//      // Check if we are about to collide.  If so,
-//      // zero forward speed
-//      if(obs_dect> 500){
-//          heading = true;
-//          forward_bias = 0;
-//          target_rot = 90;
-//          zero_rot = Pose.getThetaDegrees();
-//          Serial.print("heading obs: ");
-//          Serial.println(heading);
-//        }
-//      // Check if we are at an edge cell
-//      else if(((MAP_X-Pose.getX())< C_HALF_WIDTH) || ((MAP_Y-Pose.getY())< C_HALF_WIDTH) || (Pose.getX()<C_HALF_WIDTH) || (Pose.getY()<C_HALF_WIDTH)){
-//        forward_bias = 0;
-//        heading = true;
-//        target_rot = 180;
-//        zero_rot = Pose.getThetaDegrees();
-//        Serial.print("heading border: ");
-//        Serial.println(heading);
-//        }
-//
-//      }
-
-//Turning motion to try sensor fusion. Can be deleted later:
-      if (Pose.getThetaDegrees() <=90 && Pose.getThetaDegrees() >-5 ){
-        float forward_bias=0;
-        float turn_bias=3;
-        left_speed_demand = forward_bias - turn_bias;
-        right_speed_demand = forward_bias + turn_bias;
-      } else {
+if (Pose.getThetaDegrees() <=90 && Pose.getThetaDegrees() >-5 ){
+    float forward_bias=0;
+      float turn_bias=3;
+      left_speed_demand = forward_bias - turn_bias;
+              right_speed_demand = forward_bias + turn_bias;
+                } else {
               stop_mapping =1;
             }
 
@@ -484,7 +439,7 @@ void MappingTask() {
     }
 
 
-    //OBSTACLE mapping
+    //OBSTACLE avoidance
 
     float distance = DistanceSensor.readCalibrated();
     if( distance < 400 && distance > 100 ) {

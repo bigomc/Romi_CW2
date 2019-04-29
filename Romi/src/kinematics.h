@@ -29,33 +29,19 @@ class Kinematics
          float getLeftVelocity();
          float getRightVelocity();
          long  angle2counts(float ang);
-         void  sensorFusion();
-         float getTheta_fDegrees();
-         float getTheta_fRadians();
 
     private:
 
          float x=900;
          float y=900;
          float theta=0;
+         float last_theta = 0;
          float angular_velocity = 0;
-         long  left_angular_velocity = 0;
-         long  right_angular_velocity = 0;
-         bool  debug = false;
+         float  left_angular_velocity = 0;
+         float  right_angular_velocity = 0;
+         bool  debug=false;
          unsigned long last_update = 0;
-         unsigned long last_gh_update = 0;
-         float heading_mag = 0;
-         float gyro = 0;
-         float g_high_filter = 0;
-         float complementary_heading = 0;
-         float alpha = 0.3;
-         float g_h_heading = 0;
-         float angular_rate = 0;
-         float h = 0.0001;
-         float g = 0.1;
-         float theta_f = 0;
          bool initialised = false;
-
 };
 
 #endif
