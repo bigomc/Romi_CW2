@@ -6,7 +6,7 @@
 #include "magnetometer.h"
 
 extern Magnetometer Mag;
-extern Imu Imu;
+extern Imu imu;
 
 /*
  * Class constructor
@@ -24,7 +24,7 @@ void Kinematics::update()
 
 		enableInterrupts();
 	}
-	
+
     //Calculate delta since last update
     int16_t left_count = getCountLeft();
     int16_t right_count = getCountRight();
@@ -80,12 +80,12 @@ void Kinematics::sensorFusion(){
 	//Complementary heading filter calculations:
 	heading_mag = Mag.headingFiltered(); //Filtered magnetometer reading
 	//Gyroscope reading and high pass Filter
-	Imu.readCalibrated(); //Gyroscope reading in Degrees per second
-	//gyro = Imu.getFiltered(); //Gz low pass filter
-	//g_high_filter += ((Imu.gz - gyro)*time_elapsed)*0.001; //Gz after high pass filter
+	imu.readCalibrated(); //Gyroscope reading in Degrees per second
+	//gyro = imu.getFiltered(); //Gz low pass filter
+	//g_high_filter += ((imu.gz - gyro)*time_elapsed)*0.001; //Gz after high pass filter
 
 	//Putting all together in complementary filter
-	complementary_heading = (1-alpha)*(complementary_heading + (Imu.gz*time_elapsed*0.001))+alpha*(heading_mag); //Complementary filter - Degrees
+	complementary_heading = (1-alpha)*(complementary_heading + (imu.gz*time_elapsed*0.001))+alpha*(heading_mag); //Complementary filter - Degrees
 
 	//Wrapping angle value
 	if(complementary_heading < -180){

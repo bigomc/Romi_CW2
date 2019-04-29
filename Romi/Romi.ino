@@ -55,7 +55,7 @@ LineSensor    LineRight(LINE_RIGHT_PIN); //Right line sensor
 
 SharpIR       DistanceSensor(SHARP_IR_PIN); //Distance sensor
 
-Imu           Imu;
+Imu           imu;
 
 Magnetometer  Mag; // Class for the magnetometer
 
@@ -150,8 +150,8 @@ void setup()
 
   Wire.begin();
   Serial.println("Calibrating IMU");
-  Imu.init();
-  Imu.calibrate();
+  imu.init();
+  imu.calibrate();
 
   Serial.println("Initialising Magnetometer");
   Mag.init();
@@ -235,7 +235,7 @@ void SensorsTask() {
     LineLeft.read();
     LineRight.read();
     Mag.readCalibrated();
-    _imu.readFiltered();
+    imu.getFiltered();
 }
 
 void PrintTask() {
@@ -259,7 +259,7 @@ void PrintTask() {
     Serial.print(", ");
     Serial.print(Mag.headingFiltered());
     Serial.print(", ");
-    Serial.print(_imu.gz);
+    Serial.print(imu.gz);
     Serial.print("] (");
     Serial.print(x_goal);
     Serial.print(", ");
