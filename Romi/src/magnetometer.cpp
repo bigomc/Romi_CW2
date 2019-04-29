@@ -30,7 +30,6 @@ void Magnetometer::readRaw()
 
 void Magnetometer::readCalibrated()
 {
-    mag.read();
     x = sensitivity * (mag.m.x - x_offset) * x_scale;
     y = sensitivity * (mag.m.y - y_offset) * y_scale;
     z = sensitivity * (mag.m.z - z_offset) * z_scale;
@@ -93,6 +92,7 @@ void Magnetometer::calculateOffsets()
 void Magnetometer::set_zero() {
     heading_mag_zero = 0;
     for(int i = 0; i < 10; i++) {
+        mag.read();
         readCalibrated();
         heading_mag_zero += atan2(y,x);
     }
@@ -104,7 +104,7 @@ float Magnetometer::getHeading()
 {
     double aux = 0;
 
-    //readCalibrated();
+    readCalibrated();
     heading = heading_mag_zero - atan2(y,x); //Relative to start position
 
     //Adjusting angle value
@@ -116,7 +116,7 @@ float Magnetometer::getHeading()
     }
     heading += aux;
 
-    return rad2deg(heading);
+    return heading;
 }
 
 
