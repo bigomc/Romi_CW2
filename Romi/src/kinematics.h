@@ -30,12 +30,23 @@ class Kinematics
          float getRightVelocity();
          long  angle2counts(float ang);
          void  sensorFusion();
+         void predictAngularVelocity();
+         void predictOrientation();
+         void updateAngularVelocity(float measurement);
+         void updateOrientation(float measurement);
+         void updatePosition();
+
+         float complementary_heading = 0;
+         float angular_velocity_hat = 0;
+         float theta_hat = 0;
 
     private:
 
         float x=900;
         float y=900;
         float theta=0;
+        float x_hat = 0;
+        float y_hat = 0;
         float angular_velocity = 0;
         bool initialised = false;
         long  left_angular_velocity = 0;
@@ -46,13 +57,25 @@ class Kinematics
         float heading_mag = 0;
         float gyro = 0;
         float g_high_filter = 0;
-        float complementary_heading = 0;
+
         float alpha = 0.3;
         float g_h_heading = 0;
         float angular_rate = 0;
         float h = 0.0001;
         float g = 0.1;
         float theta_f = 0;
+
+        float Q_w = 0.1;
+        float K_w = 1;
+        float P_w = 10;
+        const float R_w = 0.1;
+
+        float Q_t = 0.1;
+        float K_t = 1;
+        float P_t = 10;
+        const float R_t = 1;
+
+        float time_elapsed = 0;
 };
 
 #endif

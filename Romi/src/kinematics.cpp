@@ -34,8 +34,8 @@ void Kinematics::update()
 
 
     //Update position
-    x += (cos(deg2rad(theta_f)) * delta_sum / 2);
-    y += (sin(deg2rad(theta_f)) * delta_sum / 2);
+    x += (cos(theta) * delta_sum / 2);
+    y += (sin(theta) * delta_sum / 2);
     theta +=  (delta_dif / WHEEL_DISTANCE);
 
     //Wrap theta between -PI and PI.
@@ -53,8 +53,12 @@ void Kinematics::update()
     left_angular_velocity = ((RAD_PER_COUNT * left_count) / time_elapsed);
     right_angular_velocity = ((RAD_PER_COUNT * right_count) / time_elapsed);
 
-		angular_velocity = ((right_angular_velocity - left_angular_velocity)*WHEEL_RADIUS)/WHEEL_DISTANCE; //Radians per second
-		angular_velocity = rad2deg(angular_velocity); //Degrees per second
+	angular_velocity = ((right_angular_velocity - left_angular_velocity)*WHEEL_RADIUS)/WHEEL_DISTANCE; //Radians per second
+	//angular_velocity = rad2deg(angular_velocity); //Degrees per second
+
+	x_hat = x;
+	y_hat = y;
+	theta_hat = theta;
 
     if (debug)
     {
@@ -63,14 +67,77 @@ void Kinematics::update()
 
 }
 
+void Kinematics::predictAngularVelocity() {
+	if(!initialised) {
+		initialised = true;
+
+		enableInterrupts();
+	}
+
+    //Calculate delta since last update
+    int16_t left_count = getCountLeft();
+    int16_t right_count = getCountRight();
+
+    time_elapsed = millis() - last_update;
+    last_update = millis();
+
+    left_angular_velocity = ((RAD_PER_COUNT * left_count) / time_elapsed);
+    right_angular_velocity = ((RAD_PER_COUNT * right_count) / time_elapsed);
+
+	angular_velocity = ((right_angular_velocity - left_angular_velocity)*WHEEL_RADIUS)/WHEEL_DISTANCE; //Radians per second
+	angular_velocity_hat = angular_velocity;
+}
+
+void Kinematics::predictOrientation() {
+	float dt;
+
+	dt = angular_velocity_hat * time_elapsed;
+	dt /= 1000;
+	theta += dt;
+
+	theta_hat = theta;
+}
+
+void Kinematics::updateAngularVelocity(float measurement) {
+	float k_2;
+
+	P_w = P_w + Q_w;
+	K_w = P_w / (P_w + R_w);
+
+	angular_velocity_hat = angular_velocity_hat + K_w * (measurement - angular_velocity);
+	k_2 = (K_w * K_w);
+	P_w = (P_w * (1 - (2 * K_w) + k_2)) + (k_2 * R_w);
+}
+
+void Kinematics::updateOrientation(float measurement) {
+	float k_2;
+
+	P_t = P_t + Q_t;
+	K_t = P_t / (P_t + R_t);
+
+	theta_hat = theta_hat + K_t * (measurement - theta);
+	k_2 = (K_t * K_t);
+	P_t = (P_t * (1 - (2 * K_t) + k_2)) + (k_2 * R_t);
+}
+
+void Kinematics::updatePosition() {
+
+	float sum = (left_angular_velocity + right_angular_velocity) * WHEEL_RADIUS / 2;
+
+	sum *= time_elapsed;
+	sum /= 1000;
+
+	x += sum * cos(theta_hat);
+	y += sum * sin(theta_hat);
+}
 
 void Kinematics::sensorFusion(){
 
 	float time_elapsed = millis() - last_gh_update;
-	last_gh_update = millis();
+	//last_gh_update = millis();
 	//G-H Filter to improve heading accuracy
-	angular_rate = angular_rate + h*(angular_velocity-angular_rate); //Degrees per second
-	float h_prediction = g_h_heading + angular_rate*(time_elapsed*0.001); //Degrees
+	// angular_rate = angular_rate + h*(angular_velocity-angular_rate); //Degrees per second
+	// float h_prediction = g_h_heading + angular_rate*(time_elapsed*0.001); //Degrees
 
 	//Serial.print("Ang vel: ");
 	//Serial.println(angular_velocity);
@@ -80,28 +147,28 @@ void Kinematics::sensorFusion(){
 	//Complementary heading filter calculations:
 	heading_mag = Mag.headingFiltered(); //Filtered magnetometer reading
 	//Gyroscope reading and high pass Filter
-	imu.readCalibrated(); //Gyroscope reading in Degrees per second
+	imu.getFiltered(); //Gyroscope reading in Degrees per second
 	//gyro = imu.getFiltered(); //Gz low pass filter
 	//g_high_filter += ((imu.gz - gyro)*time_elapsed)*0.001; //Gz after high pass filter
 
 	//Putting all together in complementary filter
-	complementary_heading = (1-alpha)*(complementary_heading + (imu.gz*time_elapsed*0.001))+alpha*(heading_mag); //Complementary filter - Degrees
+	complementary_heading = (1-alpha)*(complementary_heading + (deg2rad(imu.gz)*time_elapsed*0.001))+alpha*(heading_mag); //Complementary filter - Degrees
 
 	//Wrapping angle value
-	if(complementary_heading < -180){
-			complementary_heading = 360 + complementary_heading;
+	if(complementary_heading < -PI){
+			complementary_heading += (2 * PI);
 			}
 	if(complementary_heading > 180){
-			complementary_heading = complementary_heading - 360;
+			complementary_heading -= (2 * PI);
 			}
 
 	//Serial.print("complementary_heading: ");
 	//Serial.println(complementary_heading);
 
 	//g-h filter
-	float residual = complementary_heading - h_prediction;
-	g_h_heading = h_prediction + g*residual;
-	theta_f = g_h_heading;
+	// float residual = complementary_heading - h_prediction;
+	// g_h_heading = h_prediction + g*residual;
+	// theta_f = g_h_heading;
 
 }
 
@@ -109,12 +176,12 @@ void Kinematics::sensorFusion(){
 
 float Kinematics::getThetaDegrees()
 {
-    return theta_f;
+    return rad2deg(theta_hat);
 }
 
 float Kinematics::getThetaRadians()
 {
-    return deg2rad(theta_f);
+    return theta;
 }
 
 float Kinematics::getAngularVelocity() {

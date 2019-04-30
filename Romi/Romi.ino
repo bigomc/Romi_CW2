@@ -33,7 +33,7 @@
 #define BAUD_RATE 115200
 #define SAMPLING_TICK_PERIOD    5
 #define MAX_VELOCITY    3
-#define TIME_LIMIT  100000
+#define TIME_LIMIT  1000000
 #define LINE_CONFIDENCE 70
 #define VMAX    3
 
@@ -100,6 +100,9 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
 //Mapping variables
 unsigned long count_mapping = 0;
 bool stop_mapping = false;
+
+// Sensor fusion Variables
+bool new_data = false;
 
 //Heading Flag
 bool heading = false;
@@ -216,13 +219,28 @@ void setup()
  * - log lines, RFID and obstacles to the map.
  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+ long time_elapsed = millis();
+ float t = 0;
 void loop() {
     Scheduler();
 }
 
 void UpdateTask() {
-    Pose.update();
-    Pose.sensorFusion();
+    // Pose.update();
+    // Pose.sensorFusion();
+    Pose.predictAngularVelocity();
+    if(new_data) {
+        Pose.updateAngularVelocity(deg2rad(imu.gz));
+    }
+    Pose.predictOrientation();
+    if(new_data) {
+        Pose.updateOrientation(Mag.headingFiltered());
+    }
+    Pose.updatePosition();
+
+    if(new_data) {
+        new_data = false;
+    }
 }
 
 void SensorsTask() {
@@ -234,8 +252,10 @@ void SensorsTask() {
     LineCentre.read();
     LineLeft.read();
     LineRight.read();
-    Mag.readCalibrated();
+    Mag.read();
     imu.getFiltered();
+
+    new_data = true;
 }
 
 void PrintTask() {
@@ -245,7 +265,7 @@ void PrintTask() {
     Serial.print(", ");
     Serial.print(Pose.getY());
     Serial.print(", ");
-    Serial.print(Pose.getThetaRadians());
+    Serial.print(Pose.theta_hat);
     Serial.print("] [(");
     Serial.print(Pose.getLeftVelocity());
     Serial.print(", ");
@@ -260,11 +280,13 @@ void PrintTask() {
     Serial.print(Mag.headingFiltered());
     Serial.print(", ");
     Serial.print(imu.gz);
+    Serial.print(", ");
+    Serial.print(Pose.complementary_heading);
     Serial.print("] (");
     Serial.print(x_goal);
     Serial.print(", ");
     Serial.print(y_goal);
-    Serial.println("]");
+    Serial.println("");
 }
 
 void ControlSpeed() {
