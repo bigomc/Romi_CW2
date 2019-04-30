@@ -479,3 +479,68 @@ void MappingTask() {
         Map.updateMapFeature( (byte)'L', Pose.getY(), Pose.getX() );
     }
 }
+
+
+void obstacleAvoidance (){
+    //Get current pose
+    float x_pose = Pose.getX();
+    float y_pose = Pose.getY();
+    //Current pose in indexes - Eeprom matrix
+    int x_ind = Map.poseToIndex(x_pose,MAP_X,MAP_RESOLUTION);
+    int y_ind = Map.poseToIndex(y_pose,MAP_Y,MAP_RESOLUTION);
+    //Goal cell - These should be known from the exploration algorithm. Could be included as arguments to the function
+    float x_goal=0; //Values should be defined a priori
+    float y_goal=0;
+    float x_error = x_goal - x_pose;
+    float y_error = y_goal - y_pose;
+    //Calculate attractive force from the goal
+    float Kg = 1; //This can be updated to achieve good obstacle avoidance response
+    float Fgoal = Kg*sqrt(sq(x_error)+sq(y_error));
+    float alpha_goal = atan2(y_error,x_error);
+    float Fx_goal = Fgoal*cos(alpha_goal);
+    float Fy_goal = Fgoal*sin(alpha_goal);
+    //Calculate repulsive force from the obstacles
+    float Ko = 1; //This can be updated to achieve good obstacle avoidance response
+    float Fres_obs_x = 0; //Resultant force due to obstacles in x
+    float Fres_obs_y = 0; //Resultant force due to obstacles in y
+
+    for (int i= x_ind-1; i= x_ind+1; i++)
+    {
+      for (int j = y_ind-1; j=y_ind+1; j++)
+      {
+        if((i!=x_ind) && (j!=y_ind))
+          {
+          float x_obs = Map.indexToPose(i,MAP_X,MAP_RESOLUTION);
+          float y_obs = Map.indexToPose(j,MAP_X,MAP_RESOLUTION);
+          byte cell = Map.readEeprom(x_obs,y_obs);
+          if(cell = (byte)'O')
+              {
+              float dist_x = x_pose - x_obs;
+              float dist_y = y_pose - y_obs;
+              float Fobs = Ko/sqrt(sq(dist_x)+sq(dist_y));
+              float alpha_obs = atan2(dist_y,dist_x);
+              float Fx_obs = Fobs*cos(alpha_obs);
+              float Fy_obs = Fobs*sin(alpha_obs);
+              Fres_obs_x += Fx_obs;
+              Fres_obs_y += Fy_obs;
+              }
+        }
+      }
+    }
+
+    //Calculate Resultant Force applied on the robot
+    float Fx_total = Fx_goal + Fres_obs_x;
+    float Fy_total = Fy_goal + Fres_obs_y;
+    //Calculate next cell to go
+    //This is expressed in index values
+    int x_next = x_ind + Fx_total/abs(Fx_total);
+    int y_next = y_ind + Fy_total/abs(Fy_total);
+    //If we want in coordinates:
+    float next_xc = Map.indexToPose(x_next,MAP_X,MAP_RESOLUTION);
+    float next_yc = Map.indexToPose(y_next,MAP_X,MAP_RESOLUTION);
+    //If next cell is still part of the obstacle we can play with the values of Ko and Kg to increase
+    //repulsive force and decrease attractive force but we need to integrate with exploration algorithm and try
+
+  }
+
+}
