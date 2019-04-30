@@ -12,10 +12,10 @@ void Imu::init()
     }
     imu.enableDefault();
 	//imu.writeReg(LSM6::CTRL1_XL, 0b01011000); // 208 Hz, +/4 g
-  imu.writeReg(LSM6::CTRL1_XL,0b01100000); //Setting accelerometer ODR to 416Hz
-  imu.writeReg(LSM6::CTRL2_G,0b01100000); //Setting gyro ODR to 416Hz
-	// imu.writeReg(imu.CTRL1_XL, 0x40);
-	// imu.writeReg(imu.CTRL2_G, 0x40);
+    // imu.writeReg(LSM6::CTRL1_XL,0b01100000); //Setting accelerometer ODR to 416Hz
+    // imu.writeReg(LSM6::CTRL2_G,0b01100000); //Setting gyro ODR to 416Hz
+	imu.writeReg(imu.CTRL1_XL, 0x40);
+	imu.writeReg(imu.CTRL2_G, 0x40);
 	imu.writeReg(imu.FIFO_CTRL5, 0x26);
 	imu.writeReg(imu.FIFO_CTRL1, 0x01);
 }

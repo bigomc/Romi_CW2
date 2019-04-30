@@ -65,8 +65,8 @@ Motor         RightMotor(MOTOR_PWM_R, MOTOR_DIR_R);
 //These work for our Romi - We strongly suggest you perform your own tuning
 PID           LeftSpeedControl( 10, 0.1, 1 );
 PID           RightSpeedControl( 10, 0.1, 1 );
-PID           HeadingControl( 5, 0, 1 );
-PID           TurningControl( 3, 0, 2 );
+PID           HeadingControl( 4, 0, 1 );
+PID           TurningControl( 0.7, 0, 0.6 );
 
 Mapper        Map; //Class for representing the map
 
@@ -90,7 +90,7 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
 
  // Planning Variables
  bool goal_reached = false;
- const Point_t points[] = {{700, 900}, {36, 1764}, {36, 36}, {1764, 36}};
+ const Point_t points[] = {{900, 1100}, {1100, 1100}, {1100, 900}, {900, 900}};
  int point_index = 0;
 
 //Use these variables to set the demand of the speed controller
@@ -100,9 +100,6 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
 //Mapping variables
 unsigned long count_mapping = 0;
 bool stop_mapping = false;
-
-// Sensor fusion Variables
-bool new_data = false;
 
 //Heading Flag
 bool heading = false;
@@ -219,28 +216,19 @@ void setup()
  * - log lines, RFID and obstacles to the map.
  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
- long time_elapsed = millis();
- float t = 0;
 void loop() {
     Scheduler();
 }
 
 void UpdateTask() {
-    // Pose.update();
-    // Pose.sensorFusion();
-    Pose.predictAngularVelocity();
-    if(new_data) {
-        Pose.updateAngularVelocity(deg2rad(imu.gz));
-    }
-    Pose.predictOrientation();
-    if(new_data) {
-        Pose.updateOrientation(Mag.headingFiltered());
-    }
-    Pose.updatePosition();
+    Mag.read();
+    imu.getFiltered();
 
-    if(new_data) {
-        new_data = false;
-    }
+    Pose.predictAngularVelocity();
+    Pose.updateAngularVelocity(deg2rad(imu.gz));
+    Pose.predictOrientation();
+    //Pose.updateOrientation(Mag.headingFiltered());
+    Pose.updatePosition();
 }
 
 void SensorsTask() {
@@ -252,10 +240,6 @@ void SensorsTask() {
     LineCentre.read();
     LineLeft.read();
     LineRight.read();
-    Mag.read();
-    imu.getFiltered();
-
-    new_data = true;
 }
 
 void PrintTask() {
@@ -265,7 +249,7 @@ void PrintTask() {
     Serial.print(", ");
     Serial.print(Pose.getY());
     Serial.print(", ");
-    Serial.print(Pose.theta_hat);
+    Serial.print(Pose.getThetaRadians());
     Serial.print("] [(");
     Serial.print(Pose.getLeftVelocity());
     Serial.print(", ");
@@ -281,12 +265,12 @@ void PrintTask() {
     Serial.print(", ");
     Serial.print(imu.gz);
     Serial.print(", ");
-    Serial.print(Pose.complementary_heading);
+    Serial.print("");
     Serial.print("] (");
     Serial.print(x_goal);
     Serial.print(", ");
     Serial.print(y_goal);
-    Serial.println("");
+    Serial.println("]");
 }
 
 void ControlSpeed() {
@@ -326,7 +310,7 @@ void ControlPosition() {
         orientation_error -= (2 * PI);
     }
 
-    if(position_error > 50) {
+    if(position_error > 10) {
         sat = min(Ks, max(-Ks, orientation_error));
 
         turning = TurningControl.update(orientation_error, 0);
