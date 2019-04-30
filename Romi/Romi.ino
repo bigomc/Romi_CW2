@@ -36,6 +36,7 @@
 #define TIME_LIMIT  1000000
 #define LINE_CONFIDENCE 70
 #define VMAX    3
+//#define USE_MAGNETOMETER    1
 
 struct Point_tag {
     float x;
@@ -57,7 +58,9 @@ SharpIR       DistanceSensor(SHARP_IR_PIN); //Distance sensor
 
 Imu           imu;
 
+#ifdef USE_MAGNETOMETER
 Magnetometer  Mag; // Class for the magnetometer
+#endif
 
 Motor         LeftMotor(MOTOR_PWM_L, MOTOR_DIR_L);
 Motor         RightMotor(MOTOR_PWM_R, MOTOR_DIR_R);
@@ -153,6 +156,7 @@ void setup()
   imu.init();
   imu.calibrate();
 
+#ifdef USE_MAGNETOMETER
   Serial.println("Initialising Magnetometer");
   Mag.init();
   Serial.println("Press button to calibrate Magnetometer");
@@ -162,6 +166,7 @@ void setup()
   Mag.calibrate();
   LeftMotor.setPower(0);
   RightMotor.setPower(0);
+#endif
 
   // Set the random seed for the random number generator
   // from A0, which should itself be quite random.
@@ -174,7 +179,9 @@ void setup()
   // Your extra setup code is best placed here:
   // ...
   Map.resetMap();
+#ifdef USE_MAGNETOMETER
   Mag.set_zero();
+#endif
   // ...
   // but not after the following:
 
@@ -221,13 +228,17 @@ void loop() {
 }
 
 void UpdateTask() {
+#ifdef USE_MAGNETOMETER
     Mag.read();
+#endif
     imu.getFiltered();
 
     Pose.predictAngularVelocity();
     Pose.updateAngularVelocity(deg2rad(imu.gz));
     Pose.predictOrientation();
+#ifdef USE_MAGNETOMETER
     //Pose.updateOrientation(Mag.headingFiltered());
+#endif
     Pose.updatePosition();
 }
 
@@ -261,8 +272,10 @@ void PrintTask() {
     Serial.print(")] [");
     Serial.print(DistanceSensor.readCalibrated());
     Serial.print(", ");
+#ifdef USE_MAGNETOMETER
     Serial.print(Mag.headingFiltered());
     Serial.print(", ");
+#endif
     Serial.print(imu.gz);
     Serial.print(", ");
     Serial.print("");
