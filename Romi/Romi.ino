@@ -108,7 +108,6 @@ enum SensorPosition_t {
     SENSOR_UNKNOWN
 };
 const float sensors_offset[] = {-PI/4, 0, PI/4};
-const SharpIR DistanceSensor[] = {DistanceLeft, DistanceFront, DistanceRight};
 
 //Heading Flag
 bool heading = false;
@@ -253,9 +252,9 @@ void SensorsTask() {
     // the real value when needed instead of read everytime, this reduces
     // latency and speeds up the program execution
 
-    for(int i = SENSOR_LEFT; i < SENSOR_UNKNOWN; i++) {
-        DistanceSensor[0].read();
-    }
+    DistanceLeft.read();
+    DistanceFront.read();
+    DistanceRight.read();
     LineCentre.read();
     LineLeft.read();
     LineRight.read();
@@ -504,15 +503,23 @@ void MappingTask() {
         Map.updateMapFeature((byte)'V',Pose.getY(),Pose.getX());
     }
 
-
     //OBSTACLE mapping
     float distance;
-    for(int i = SENSOR_LEFT; i < SENSOR_UNKNOWN; i++) {
-        distance = DistanceSensor[i].readCalibrated();
-        if( distance < 400 && distance > 100 ) {
-            Point_t coordinate = getObstacleCoordinates(distance, sensors_offset[i]);
-            Map.updateMapFeature( (byte)'O', coordinate.y, coordinate.x );
-        }
+    Point_t coordinate;
+    distance = DistanceLeft.readCalibrated();
+    if( distance < 400 && distance > 100 ) {
+        coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_LEFT]);
+        Map.updateMapFeature( (byte)'O', coordinate.y, coordinate.x );
+    }
+    distance = DistanceFront.readCalibrated();
+    if( distance < 400 && distance > 100 ) {
+        coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_FRONT]);
+        Map.updateMapFeature( (byte)'O', coordinate.y, coordinate.x );
+    }
+    distance = DistanceRight.readCalibrated();
+    if( distance < 400 && distance > 100 ) {
+        coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_RIGHT]);
+        Map.updateMapFeature( (byte)'O', coordinate.y, coordinate.x );
     }
 
     // Check RFID scanner.
