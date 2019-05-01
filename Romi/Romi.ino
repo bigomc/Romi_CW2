@@ -22,6 +22,7 @@
 #include "src/Pushbutton.h"
 #include "src/Scheduler.h"
 #include "src/wheels.h"
+#include "src/robotActions.h"
 
 
 
@@ -37,11 +38,6 @@
 #define LINE_CONFIDENCE 70
 #define VMAX    3
 //#define USE_MAGNETOMETER    1
-
-struct Point_tag {
-    float x;
-    float y;
-} typedef Point_t;
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Class Instances.                                                              *
@@ -349,15 +345,12 @@ void PlanningTask() {
 
     // Changes the goal when the current goal has reached
     if(goal_reached) {
+            Point_t goals = move(Pose.getX(),Pose.getY(), Pose.getThetaRadians(), Map);
+            x_goal = goals.x;
+            y_goal = goals.y;
 
-        // Verify the size of the goals
-        if(point_index < (size - 1)) {
             goal_reached = false;
-
-            point_index++;
-            x_goal = points[point_index].x;
-            y_goal = points[point_index].y;
-        }
+        
     }
 }
 
