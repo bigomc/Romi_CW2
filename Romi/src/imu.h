@@ -13,7 +13,7 @@ class Imu
         void  readRaw();
         void  readCalibrated();
         void  calibrate();
-		void  readFiltered();
+		    void  getFiltered();
         LSM6 imu;
         float ax = 0;
         float ay = 0;
@@ -27,11 +27,11 @@ class Imu
 		float last_gx = 0;
 		float last_gy = 0;
 		float last_gz = 0;
-		float alpha = 0.2;
+		float alpha = 0.1;
 
     private:
-        float a_sensitivity = 0.061/1000;
-        float g_sensitivity = 8.75/1000;
+        float a_sensitivity = 0.061/1000.0; //Corresponds to +/-2g default sensitivity
+        float g_sensitivity = 8.75/1000.0; //Corresponds to default sensitivity of +/-245 mdps
         float gx_offset = 0;
         float gy_offset = 0;
         float gz_offset = 0;
