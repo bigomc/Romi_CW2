@@ -481,7 +481,7 @@ void MappingTask() {
 }
 
 
-void obstacleAvoidance (){
+void obstacleAvoidance (float x_goal, float y_goal){
     //Get current pose
     float x_pose = Pose.getX();
     float y_pose = Pose.getY();
@@ -489,18 +489,18 @@ void obstacleAvoidance (){
     int x_ind = Map.poseToIndex(x_pose,MAP_X,MAP_RESOLUTION);
     int y_ind = Map.poseToIndex(y_pose,MAP_Y,MAP_RESOLUTION);
     //Goal cell - These should be known from the exploration algorithm. Could be included as arguments to the function
-    float x_goal=0; //Values should be defined a priori
-    float y_goal=0;
+    //float x_goal=0; //Values should be defined a priori
+    //float y_goal=0;
     float x_error = x_goal - x_pose;
     float y_error = y_goal - y_pose;
     //Calculate attractive force from the goal
-    float Kg = 1; //This can be updated to achieve good obstacle avoidance response
+    float Kg = 0.01; //This can be updated to achieve good obstacle avoidance response
     float Fgoal = Kg*sqrt(sq(x_error)+sq(y_error));
     float alpha_goal = atan2(y_error,x_error);
     float Fx_goal = Fgoal*cos(alpha_goal);
     float Fy_goal = Fgoal*sin(alpha_goal);
     //Calculate repulsive force from the obstacles
-    float Ko = 1; //This can be updated to achieve good obstacle avoidance response
+    float Ko = 1000; //This can be updated to achieve good obstacle avoidance response
     float Fres_obs_x = 0; //Resultant force due to obstacles in x
     float Fres_obs_y = 0; //Resultant force due to obstacles in y
 
