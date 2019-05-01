@@ -17,8 +17,8 @@ import croppingExample
 ap = argparse.ArgumentParser()
 # ap.add_argument("-m", "--map", required=True,
 #                 help="path to the map without romi image file")
-ap.add_argument("-i", "--image", required=True,
-                help="path to the calibration image file")
+# ap.add_argument("-i", "--image", required=True,
+#                 help="path to the calibration image file")
 ap.add_argument("-v", "--video", required = True,
                 help="path to the (optional) video file")
 ap.add_argument("-b", "--buffer", type=int, default=32768,
@@ -26,21 +26,7 @@ ap.add_argument("-b", "--buffer", type=int, default=32768,
 args = vars(ap.parse_args())
 
 
-print("Region of interest for romi detecion: \nPress r to reset \n Press c if you are happy!")
-[roi, p1, p2, p3, p4] = croppingExample.get_cropping_map(cv2.imread(args['image']))
 
-print("Press 's' if you are happy with the range")
-H_min, S_min, V_min, H_max, S_max, V_max = rangeFinder.rangefinder(roi)# H, S, V (min) | H, S, V (max)
-# keep going with "s"
-
-
-# define the lower and upper boundaries for the object to track HSV color space, then initialize the
-# list of tracked points
-
-##these values give the romi color
-HSV_Lower = (H_min, S_min, V_min)
-HSV_Upper = (H_max, S_max, V_max)
-####
 
 pts = deque(maxlen=args["buffer"])
 
@@ -58,6 +44,23 @@ time.sleep(2.0)
 
 frame = vs.read()
 frame = frame[1] if args.get("video", False) else frame
+
+print("Region of interest for romi detecion: \nPress r to reset \n Press c if you are happy!")
+[roi, p1, p2, p3, p4] = croppingExample.get_cropping_map(frame)
+
+print("Press 's' if you are happy with the range")
+H_min, S_min, V_min, H_max, S_max, V_max = rangeFinder.rangefinder(roi)# H, S, V (min) | H, S, V (max)
+# keep going with "s"
+
+
+# define the lower and upper boundaries for the object to track HSV color space, then initialize the
+# list of tracked points
+
+##these values give the romi color
+HSV_Lower = (H_min, S_min, V_min)
+HSV_Upper = (H_max, S_max, V_max)
+####
+
 print("Region of interest to crop the map: \nPress r to reset \n Press c if you are happy!")
 [frame, p1, p2, p3, p4] = croppingExample.get_cropping_map(frame)
 
