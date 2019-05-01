@@ -59,10 +59,7 @@ time.sleep(2.0)
 frame = vs.read()
 frame = frame[1] if args.get("video", False) else frame
 print("Region of interest to crop the map: \nPress r to reset \n Press c if you are happy!")
-[roi, p1, p2, p3, p4] = croppingExample.get_cropping_map(frame)
-
-frame = croppingExample.map_cropped(roi, p1, p2, p3, p4)
-
+[frame, p1, p2, p3, p4] = croppingExample.get_cropping_map(frame)
 
 print("Making the initial map with points")
 [baseImg, baseSum] = gridMap.gridMapping(frame, False)
@@ -163,11 +160,11 @@ else:
 
 print("making the grid")
 
-[visitedImg, visitedPoints] = gridMap.subdivide(baseImg, True)
+[visitedImg, visitedPoints] = gridMap.subdivide(visitedImg, True)
 
 print("Now we can compare both images")
 
-cv2.imshow("Base Image", baseImg)
+# cv2.imshow("Base Image", baseImg)
 cv2.imshow("Visited Image", visitedImg)
 
 print("Required spaces to visit: ", baseSum, "\nVisited Spaces: ", visitedPoints)

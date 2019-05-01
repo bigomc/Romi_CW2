@@ -11,9 +11,9 @@ def subdivide(image, inRomi):
     x = 0
     y = 0
     weight = 0
-    while(y<rows-gridsize_y):
+    while(y<=rows-gridsize_y):
         x = 0
-        while(x<cols-gridsize_x):
+        while(x<=cols-gridsize_x):
             k = x*y+x
             cv2.rectangle(outputimage, (x,y), (x+gridsize_x,y+gridsize_y), (0, 0, 255), 1)
             weight += weightImage(outputimage, x , y, gridsize_x, gridsize_y, inRomi)
@@ -66,10 +66,10 @@ def weightImage(image, x, y, gridsize_x, gridsize_y, inRomi):
 # nameOfImg = 'Photos/WellDoneMap2.jpg'
 def gridMapping(nameOfImg, inRomi):
 
-    img = cv2.resize(nameOfImg, (810, 1080))
-    blankImg = np.zeros((1080,810,3), np.uint8)
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
+    # img = cv2.resize(nameOfImg, (810, 1080))
+    heightIm, widthIm, channIm = nameOfImg.shape
+    blankImg = np.zeros((heightIm,widthIm,channIm))
+    gray = cv2.cvtColor(nameOfImg, cv2.COLOR_BGR2GRAY)
     edges = cv2.Canny(gray, 75, 150)
 
     minLineLength = 50
