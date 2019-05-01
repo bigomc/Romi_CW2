@@ -165,4 +165,3 @@ long Kinematics::angle2counts(float ang){
   long counts =round(count_f); //Target number of counts to produce an angle
   return counts;
 }
-

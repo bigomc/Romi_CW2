@@ -130,10 +130,3 @@ float Magnetometer::headingFiltered() {
   return heading_filter_mag;
 
 }
-
-
-void Magnetometer::readFiltered() {
-	readCalibrated();
-	orientation = (alpha_m*orientation) + ((1 - alpha_m)*last_orientation);
-	last_orientation = orientation;
-}
