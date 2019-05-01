@@ -361,7 +361,7 @@ void PlanningTask() {
             y_goal = goals.y;
 
             goal_reached = false;
-        
+
     }
 }
 
@@ -497,29 +497,33 @@ void MappingTask() {
     // The rationale being:
     // We can't trust very close readings or very far.
     // ...but feel free to investigate this.
-    byte cell_read = Map.readEeprom(Pose.getX(),Pose.getY());
-
-    if (cell_read != (byte)'O' && cell_read != (byte)'L' && cell_read != (byte)'R'){
-        Map.updateMapFeature((byte)'V',Pose.getY(),Pose.getX());
-    }
 
     //OBSTACLE mapping
     float distance;
     Point_t coordinate;
     distance = DistanceLeft.readCalibrated();
-    if( distance < 400 && distance > 100 ) {
+    if( distance < 80 && distance > 60 ) {
         coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_LEFT]);
-        Map.updateMapFeature( (byte)'O', coordinate.y, coordinate.x );
+        Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
+    } else {
+        coordinate = getObstacleCoordinates(75, sensors_offset[SENSOR_LEFT]);
+        Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
     }
     distance = DistanceFront.readCalibrated();
-    if( distance < 400 && distance > 100 ) {
+    if( distance < 200 && distance > 70 ) {
         coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_FRONT]);
-        Map.updateMapFeature( (byte)'O', coordinate.y, coordinate.x );
+        Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
+    } else {
+        coordinate = getObstacleCoordinates(75, sensors_offset[SENSOR_FRONT]);
+        Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
     }
     distance = DistanceRight.readCalibrated();
-    if( distance < 400 && distance > 100 ) {
+    if( distance < 200 && distance > 70 ) {
         coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_RIGHT]);
-        Map.updateMapFeature( (byte)'O', coordinate.y, coordinate.x );
+        Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
+    } else {
+        coordinate = getObstacleCoordinates(75, sensors_offset[SENSOR_RIGHT]);
+        Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
     }
 
     // Check RFID scanner.
@@ -527,7 +531,7 @@ void MappingTask() {
     if( checkForRFID() ) {
 
         // Add card to map encoding.
-        Map.updateMapFeature( (byte)'R', Pose.getY(), Pose.getX() );
+        Map.updateMapFeature( Map.RFID, Pose.getY(), Pose.getX() );
 
         // you can check the position reference and
         // bearing information of the RFID Card in
@@ -548,7 +552,12 @@ void MappingTask() {
     // Students can do better than this after CW1 ;)
     // Condition will depend on calibration method, the one below worked for my Romi using static calibration
     if( (LineCentre.readCalibrated() + LineLeft.readCalibrated() + LineRight.readCalibrated()) > LINE_CONFIDENCE  ) {
-        Map.updateMapFeature( (byte)'L', Pose.getY(), Pose.getX() );
+        Map.updateMapFeature(Map.LINE, Pose.getY(), Pose.getX() );
+    }
+
+    byte cell_read = Map.readEeprom(Pose.getX(),Pose.getY());
+    if (cell_read != Map.OBSTACLE && cell_read != Map.LINE && cell_read != Map.RFID){
+        Map.updateMapFeature(Map.VISITED,Pose.getY(),Pose.getX());
     }
 }
 
