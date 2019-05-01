@@ -37,7 +37,7 @@
 #define TIME_LIMIT  1000000
 #define LINE_CONFIDENCE 70
 #define VMAX    3
-//#define USE_MAGNETOMETER    1
+//#define USE_MAGNETOMETER    1     //To use magnetometer uncomment this line
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Class Instances.                                                              *
@@ -50,7 +50,9 @@ LineSensor    LineLeft(LINE_LEFT_PIN); //Left line sensor
 LineSensor    LineCentre(LINE_CENTRE_PIN); //Centre line sensor
 LineSensor    LineRight(LINE_RIGHT_PIN); //Right line sensor
 
-SharpIR       DistanceSensor(SHARP_IR_PIN); //Distance sensor
+SharpIR       DistanceFront(SHARP_IR_FRONT_PIN); //Distance sensor front
+SharpIR       DistanceLeft(SHARP_IR_LEFT_PIN); //Distance sensor left
+SharpIR       DistanceRight(SHARP_IR_RIGHT_PIN); //Distance sensor right
 
 Imu           imu;
 
@@ -99,6 +101,14 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
 //Mapping variables
 unsigned long count_mapping = 0;
 bool stop_mapping = false;
+enum SensorPosition_t {
+    SENSOR_LEFT,
+    SENSOR_FRONT,
+    SENSOR_RIGHT,
+    SENSOR_UNKNOWN
+};
+const float sensors_offset[] = {-PI/4, 0, PI/4};
+const SharpIR DistanceSensor[] = {DistanceLeft, DistanceFront, DistanceRight};
 
 //Heading Flag
 bool heading = false;
@@ -243,7 +253,9 @@ void SensorsTask() {
     // the real value when needed instead of read everytime, this reduces
     // latency and speeds up the program execution
 
-    DistanceSensor.read();
+    for(int i = SENSOR_LEFT; i < SENSOR_UNKNOWN; i++) {
+        DistanceSensor[0].read();
+    }
     LineCentre.read();
     LineLeft.read();
     LineRight.read();
@@ -266,20 +278,20 @@ void PrintTask() {
     Serial.print(", ");
     Serial.print(right_speed_demand);
     Serial.print(")] [");
-    Serial.print(DistanceSensor.readCalibrated());
+    Serial.print(DistanceLeft.readCalibrated());
     Serial.print(", ");
+    Serial.print(DistanceFront.readCalibrated());
+    Serial.print(", ");
+    Serial.print(DistanceRight.readCalibrated());
 #ifdef USE_MAGNETOMETER
+    Serial.print(", ");
     Serial.print(Mag.headingFiltered());
-    Serial.print(", ");
 #endif
-    Serial.print(imu.gz);
-    Serial.print(", ");
-    Serial.print("");
     Serial.print("] (");
     Serial.print(x_goal);
     Serial.print(", ");
     Serial.print(y_goal);
-    Serial.println("]");
+    Serial.println(")");
 }
 
 void ControlSpeed() {
@@ -372,7 +384,7 @@ void doMovement() {
     // speeds of the robot.
     float forward_bias;
     float turn_bias;
-    int obs_dect = DistanceSensor.readRaw();
+    int obs_dect = DistanceFront.readRaw();
 
 //    if (!heading){
 //      forward_bias = MAX_VELOCITY;
@@ -494,21 +506,13 @@ void MappingTask() {
 
 
     //OBSTACLE mapping
-
-    float distance = DistanceSensor.readCalibrated();
-    if( distance < 400 && distance > 100 ) {
-        // We know the romi has the sensor mounted
-        // to the front of the robot.  Therefore, the
-        // sensor faces along Pose.Theta.
-        // We also add on the distance of the
-        // sensor away from the centre of the robot.
-        distance += 80;
-
-
-        // Here we calculate the actual position of the obstacle we have detected
-        float projected_x = Pose.getX() + ( distance * cos( Pose.getThetaRadians() ) );
-        float projected_y = Pose.getY() + ( distance * sin( Pose.getThetaRadians() ) );
-        Map.updateMapFeature( (byte)'O', projected_y, projected_x );
+    float distance;
+    for(int i = SENSOR_LEFT; i < SENSOR_UNKNOWN; i++) {
+        distance = DistanceSensor[i].readCalibrated();
+        if( distance < 400 && distance > 100 ) {
+            Point_t coordinate = getObstacleCoordinates(distance, sensors_offset[i]);
+            Map.updateMapFeature( (byte)'O', coordinate.y, coordinate.x );
+        }
     }
 
     // Check RFID scanner.
@@ -539,4 +543,16 @@ void MappingTask() {
     if( (LineCentre.readCalibrated() + LineLeft.readCalibrated() + LineRight.readCalibrated()) > LINE_CONFIDENCE  ) {
         Map.updateMapFeature( (byte)'L', Pose.getY(), Pose.getX() );
     }
+}
+
+Point_t getObstacleCoordinates(float distance, float orientation_offset) {
+    Point_t coordinate;
+
+    distance += 80;
+    coordinate.x = distance * cos(Pose.getThetaRadians() + orientation_offset);
+    coordinate.x += Pose.getX();
+    coordinate.y = distance * sin(Pose.getThetaRadians() + orientation_offset);
+    coordinate.y += Pose.getY();
+
+    return coordinate;
 }
