@@ -18,37 +18,37 @@ sensors check_sensors(float x,float y, short heading, short map[MAX_X][MAX_Y]){
 	sensors sensorValues = {1,1,1};
 
 	switch (heading){
-	case 0: //left
+	case 1: //left
 		if(map[(int)x][(int)y-1] == -1)
-			sensorValues.right = 0;
+			sensorValues.left = 0;
 		if(map[(int)x-1][(int)y] == -1)
 			sensorValues.front = 0;
 		if(map[(int)x][(int)y+1] == -1)
-			sensorValues.left = 0;
-		break;
-	case 1: // up
-		if(map[(int)x-1][(int)y] == -1)
 			sensorValues.right = 0;
+		break;
+	case 2: // up
+		if(map[(int)x-1][(int)y] == -1)
+			sensorValues.left = 0;
 		if(map[(int)x][(int)y+1] == -1)
 			sensorValues.front = 0;
 		if(map[(int)x+1][(int)y] == -1)
-			sensorValues.left = 0;
-		break;
-	case 2: // right
-		if(map[(int)x][(int)y+1] == -1)
 			sensorValues.right = 0;
+		break;
+	case 3: // right
+		if(map[(int)x][(int)y+1] == -1)
+			sensorValues.left = 0;
 		if(map[(int)x+1][(int)y] == -1)
 			sensorValues.front = 0;
 		if(map[(int)x][(int)y-1] == -1)
-			sensorValues.left = 0;
-		break;
-	case 3: // down
-		if(map[(int)x+1][(int)y] == -1)
 			sensorValues.right = 0;
+		break;
+	case 4: // down
+		if(map[(int)x+1][(int)y] == -1)
+			sensorValues.left = 0;
 		if(map[(int)x][(int)y-1] == -1)
 			sensorValues.front = 0;
 		if(map[(int)x-1][(int)y] == -1)
-			sensorValues.left = 0;
+			sensorValues.right = 0;
 		break;
 	default:
 		sensorValues = {1, 1, 1};
@@ -88,7 +88,7 @@ Point_t move(float x,float y, short heading, short map[MAX_X][MAX_Y]){
 	//saving last position
 	float i_x = x;
 	float i_y = y;
-	short i_h = heading+1;
+	short i_h = heading;
 //heading = where am i pointing at
 
 //	Go to the next unexplored cell
@@ -107,40 +107,40 @@ Point_t move(float x,float y, short heading, short map[MAX_X][MAX_Y]){
 //	YES: look for another NO:go there
 //	If all are explored return previous cell, and repeat the process
 //
-//	zero:not available -> obstacle
-//	one:explored - avaliable
-//	two:not explored
-//	three:visited
-	cellsInMap cells[4];
-	for(int i = 0; i < 4; i++){
+//	0 available -> obstacle
+//	1:explored - avaliable
+//	2:not explored
+//	3:visited
+	cellsInMap cells[5];
+	for(int i = 1; i < 5; i++){
 		switch (i){
-		case 0:
-			cells[i] = check_surrounds(x-1, y, map);//izquierda
-			break;
 		case 1:
-			cells[i] = check_surrounds(x, y+1, map);//arriba
+			cells[i] = check_surrounds(x-1, y, map);//left
 			break;
 		case 2:
-			cells[i] = check_surrounds(x+1, y, map);//derecha
+			cells[i] = check_surrounds(x, y+1, map);//up
 			break;
 		case 3:
-			cells[i] = check_surrounds(x, y-1, map);//abajo
+			cells[i] = check_surrounds(x+1, y, map);//right
+			break;
+		case 4:
+			cells[i] = check_surrounds(x, y-1, map);//down
 			break;
 		}
 	}
 
 	Point_t coords = {i_x,i_y,i_h};
 
-	for(int i = 0; i<4; i++){
+	for(int i = 1; i<5; i++){
 		if(cells[i].value==2){
-			coords.heading = i+1;
+			coords.heading = i;
 			break;
 		}
 		else
 			if(cells[i].value ==1){
 				coords.x = cells[i].x_c;
 				coords.y = cells[i].y_c;
-				coords.heading = i+1;
+				coords.heading = i;
 				break;
 			}
 	}

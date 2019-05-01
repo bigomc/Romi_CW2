@@ -67,10 +67,11 @@ int main() {
 		sensorValues = check_sensors(coords.x, coords.y, coords.heading, r_map_array);
 		mapping((int)coords.x, (int)coords.y, coords.heading, sensorValues);
 		coords = move(coords.x,coords.y,coords.heading, r_map_array);
-		cout << "X: ";
-		cout << coords.x;
-		cout << "Y: ";
-		cout << coords.y << endl;
+//		cout << "X: ";
+//		cout << coords.x;
+//		cout << "Y: ";
+//		cout << coords.y << endl;
+//		printMap();
 	}
 
 
@@ -97,7 +98,7 @@ void mapping(int x, int y, short heading, sensors sensorValue){
 	r_map_array[x][y] = 3;
 
 	switch(heading){
-	case 0://left
+	case 1://left
 		if (r_map_array[x][y-1]!=3)
 			r_map_array[x][y-1] = sensorValue.left;
 		if (r_map_array[x-1][y]!=3)
@@ -105,17 +106,17 @@ void mapping(int x, int y, short heading, sensors sensorValue){
 		if (r_map_array[x][y+1]!=3)
 			r_map_array[x][y+1] = sensorValue.right;
 		break;
-	case 1://up
+	case 2://up
 		if (r_map_array[x-1][y]!=3) r_map_array[x-1][y] = sensorValue.left;
 		if (r_map_array[x][y+1]!=3) r_map_array[x][y+1] = sensorValue.front;
 		if (r_map_array[x+1][y]!=3) r_map_array[x+1][y] = sensorValue.right;
 		break;
-	case 2: //right
+	case 3: //right
 		if (r_map_array[x][y+1]!=3) r_map_array[x][y+1] = sensorValue.left;
 		if (r_map_array[x+1][y]!=3) r_map_array[x+1][y] = sensorValue.front;
 		if (r_map_array[x][y-1]!=3) r_map_array[x][y-1] = sensorValue.right;
 		break;
-	case 3:
+	case 4: //down
 		if (r_map_array[x+1][y]!=3) r_map_array[x+1][y] = sensorValue.left;
 		if (r_map_array[x][y-1]!=3) r_map_array[x][y-1] = sensorValue.front;
 		if (r_map_array[x-1][y]!=3) r_map_array[x-1][y] = sensorValue.right;

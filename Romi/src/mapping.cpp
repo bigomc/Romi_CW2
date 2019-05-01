@@ -29,11 +29,11 @@ void Mapper::printMap()
 {
 
     Serial.println("Map");
-    for (int i=0;i<MAP_RESOLUTION;i++)
+    for (int i = MAP_RESOLUTION - 1; i >= 0; i--)
     {
         for(int j=0;j<MAP_RESOLUTION;j++)
         {
-            int eeprom_address = (i*MAP_RESOLUTION)+j;
+            int eeprom_address = (j*MAP_RESOLUTION)+i;
             byte value;
             value = EEPROM.read(eeprom_address);//, value);
             Serial.print( (char)value );
@@ -63,10 +63,6 @@ void Mapper::updateMapFeature(byte feature, int y, int x)
 {
     if (x > MAP_X || x < 0 || y > MAP_Y || y < 0)
     {
-      Serial.println(F("Error:Invalid co-ordinate"));
-      Serial.print(x);
-      Serial.print(F(" "));
-      Serial.println(y);
       return;
     }
 

@@ -76,7 +76,7 @@ float PID::update(float demand, float measurement)
 	last_measurement = measurement;
 	last_error = error;
 
-	integral_error += (error * time_delta);
+	integral_error = (last_error + error) * time_delta;
 
 	//Calculate components
 	Kp_output = Kp * error;
