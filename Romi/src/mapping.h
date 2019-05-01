@@ -18,6 +18,8 @@ class Mapper
         void updateMapFeature(byte feature, int y, int x);
         void updateMapFeature(byte feature, float y, float x);
         byte readEeprom (float x, float y);
+        enum Features{ OBSTACLE = 'O', LINE = 'L', VISITED = '.', RFID = 'R',
+         EXPLORED = '*', UNKNOWN = MAP_DEFAULT_FEATURE};
 
         int  indexToPose(int i, int map_size, int resolution);
         int  poseToIndex(int x, int map_size, int resolution);
