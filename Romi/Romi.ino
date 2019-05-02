@@ -70,7 +70,7 @@ Motor         RightMotor(MOTOR_PWM_R, MOTOR_DIR_R);
 //These work for our Romi - We strongly suggest you perform your own tuning
 PID           LeftSpeedControl( 10, 0.1, 1 );
 PID           RightSpeedControl( 10, 0.1, 1 );
-PID           HeadingControl( 4, 0, 1 );
+PID           HeadingControl( 7, 0, 7 );
 PID           TurningControl( 0.7, 0, 0.6 );
 
 Mapper        Map; //Class for representing the map
@@ -94,7 +94,7 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
 
  // Planning Variables
  bool goal_reached = false;
- const Point_t points[] = {{1800, 900}};
+ const Point_t points[] = {{972, 900}};
  int point_index = 0;
 
  // Obstacle avoidance Variables
@@ -334,6 +334,8 @@ void ControlPosition() {
     float offset = 0;
     float turning;
     float ahead;
+    float x_error = goal.x - Pose.getX();
+    float y_error = goal.y - Pose.getY();
     Point_t direction;
 
     direction = obstacleAvoidanceSensors (goal.x, goal.y);
@@ -349,7 +351,7 @@ void ControlPosition() {
         orientation_error -= (2 * PI);
     }
 
-    if(position_error * 100 > 5) {
+    if(sqrt((x_error * x_error) + (y_error * y_error)) > 5) {
         sat = min(Ks, max(-Ks, orientation_error));
 
         turning = TurningControl.update(orientation_error, 0);
