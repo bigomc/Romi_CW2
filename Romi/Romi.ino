@@ -91,7 +91,7 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
 
  // Planning Variables
  bool goal_reached = false;
- const Point_t points[] = {{900, 1100}, {1100, 1100}, {1100, 900}, {900, 900}};
+ const Point_t points[] = {{1764, 900}, {900, 1764}, {36, 900}, {900, 36}};
  int point_index = 0;
 
 //Use these variables to set the demand of the speed controller
@@ -107,7 +107,7 @@ enum SensorPosition_t {
     SENSOR_RIGHT,
     SENSOR_UNKNOWN
 };
-const float sensors_offset[] = {-PI/4, 0, PI/4};
+const float sensors_offset[] = {0.383972, 0, -0.383972};
 
 //Heading Flag
 bool heading = false;
@@ -356,11 +356,11 @@ void PlanningTask() {
 
     // Changes the goal when the current goal has reached
     if(goal_reached) {
-            Point_t goals = move(Pose.getX(),Pose.getY(), Pose.getThetaRadians(), Map);
-            x_goal = goals.x;
-            y_goal = goals.y;
+        Point_t goals = move(Pose.getX(),Pose.getY(), Pose.getThetaRadians(), Map);
+        x_goal = goals.x;
+        y_goal = goals.y;
 
-            goal_reached = false;
+        goal_reached = false;
 
     }
 }
@@ -501,30 +501,40 @@ void MappingTask() {
     //OBSTACLE mapping
     float distance;
     Point_t coordinate;
+    const int distance_resolution = 18;
+    const int min_confidence = 0;
+    const int max_confidence = 150;
+
     distance = DistanceLeft.readCalibrated();
-    if( distance < 80 && distance > 60 ) {
+    for(int i = min_confidence; (i < distance) && (i < max_confidence); i += distance_resolution) {
+        coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_LEFT]);
+        Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
+    }
+    if(distance < max_confidence) {
         coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_LEFT]);
         Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
-    } else {
-        coordinate = getObstacleCoordinates(75, sensors_offset[SENSOR_LEFT]);
+    }
+
+    distance = DistanceFront.readCalibrated();
+    for(int i = min_confidence; (i < distance) && (i < 2*max_confidence); i += distance_resolution) {
+        coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_FRONT]);
         Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
     }
-    distance = DistanceFront.readCalibrated();
-    if( distance < 200 && distance > 70 ) {
+    if(distance < 2*max_confidence) {
         coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_FRONT]);
         Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
-    } else {
-        coordinate = getObstacleCoordinates(75, sensors_offset[SENSOR_FRONT]);
+    }
+
+    distance = DistanceRight.readCalibrated();
+    for(int i = min_confidence; (i < distance) && (i < max_confidence); i += distance_resolution) {
+        coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_RIGHT]);
         Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
     }
-    distance = DistanceRight.readCalibrated();
-    if( distance < 200 && distance > 70 ) {
+    if(distance < max_confidence) {
         coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_RIGHT]);
         Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
-    } else {
-        coordinate = getObstacleCoordinates(75, sensors_offset[SENSOR_RIGHT]);
-        Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
     }
+
 
     // Check RFID scanner.
     // Look inside RF_interface.h for more info.
@@ -555,10 +565,7 @@ void MappingTask() {
         Map.updateMapFeature(Map.LINE, Pose.getY(), Pose.getX() );
     }
 
-    byte cell_read = Map.readEeprom(Pose.getX(),Pose.getY());
-    if (cell_read != Map.OBSTACLE && cell_read != Map.LINE && cell_read != Map.RFID){
-        Map.updateMapFeature(Map.VISITED,Pose.getY(),Pose.getX());
-    }
+    Map.updateMapFeature(Map.VISITED,Pose.getY(),Pose.getX());
 }
 
 Point_t getObstacleCoordinates(float distance, float orientation_offset) {
