@@ -95,7 +95,7 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
 
  // Planning Variables
  bool goal_reached = false;
- const Point_t points[] = {{900, 1100}, {1100, 1100}, {1100, 900}, {900, 900}};
+ const Point_t points[] = {{1764, 900}, {900, 1764}, {36, 900}, {900, 36}};
  int point_index = 0;
 
 //Use these variables to set the demand of the speed controller
@@ -405,34 +405,35 @@ void MappingTask() {
     float distance;
     Point_t coordinate;
     const int distance_resolution = 18;
-    const int confidence_distance = 150;
+    const int min_confidence = 0;
+    const int max_confidence = 150;
 
     distance = DistanceLeft.readCalibrated();
-    for(int i = 0; (i < distance) && (i < confidence_distance); i += distance_resolution) {
+    for(int i = min_confidence; (i < distance) && (i < max_confidence); i += distance_resolution) {
         coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_LEFT]);
         Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
     }
-    if(distance < confidence_distance) {
+    if(distance < max_confidence) {
         coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_LEFT]);
         Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
     }
 
     distance = DistanceFront.readCalibrated();
-    for(int i = 0; (i < distance) && (i < confidence_distance); i += distance_resolution) {
+    for(int i = min_confidence; (i < distance) && (i < 2*max_confidence); i += distance_resolution) {
         coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_FRONT]);
         Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
     }
-    if(distance < confidence_distance) {
+    if(distance < 2*max_confidence) {
         coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_FRONT]);
         Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
     }
 
     distance = DistanceRight.readCalibrated();
-    for(int i = 0; (i < distance) && (i < confidence_distance); i += distance_resolution) {
+    for(int i = min_confidence; (i < distance) && (i < max_confidence); i += distance_resolution) {
         coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_RIGHT]);
         Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
     }
-    if(distance < confidence_distance) {
+    if(distance < max_confidence) {
         coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_RIGHT]);
         Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
     }

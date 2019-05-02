@@ -1,6 +1,7 @@
 #include "irproximity.h"
 
 SharpIR::SharpIR(byte line_pin) : AnalogSensor(line_pin) {
+    digitalWrite(pin, LOW);
 }
 
 /*
