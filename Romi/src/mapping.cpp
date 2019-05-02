@@ -17,8 +17,7 @@ void Mapper::resetMap()
             }
             else
             {
-                EEPROM.update(eeprom_address, MAP_DEFAULT_FEATURE );
-
+                EEPROM.update(eeprom_address, UNKNOWN );
             }
         }
     }
@@ -36,7 +35,7 @@ void Mapper::printMap()
             int eeprom_address = (j*MAP_RESOLUTION)+i;
             byte value;
             value = EEPROM.read(eeprom_address);//, value);
-            Serial.print( (char)value );
+            Serial.print( (char)symbols[value] );
             Serial.print(" ");
         }
         Serial.println("");
@@ -56,7 +55,10 @@ int Mapper::indexToPose(int i, int map_size, int resolution)
 
 
 void Mapper::updateMapFeature(byte feature, float y, float x) {
-  updateMapFeature( feature, (int)y, (int)x );
+    byte current = readEeprom (x, y);
+    if(feature < current) {
+        updateMapFeature( feature, (int)y, (int)x );
+    }
 }
 
 void Mapper::updateMapFeature(byte feature, int y, int x)
