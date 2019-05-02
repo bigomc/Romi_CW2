@@ -146,8 +146,8 @@ void setup()
   Map.printMap();
 
   // Set the initial goal point
-  x_goal = Pose.getX();
-  y_goal = Pose.getY();
+  goal.x = Pose.getX();
+  goal.y = Pose.getY();
 
   //Setup RFID card
   //setupRFID();
@@ -296,13 +296,7 @@ void PrintTask() {
     Serial.print(goal.x);
     Serial.print(", ");
     Serial.print(goal.y);
-    Serial.print(") ");
-    Serial.print(mag);
     Serial.print(", ");
-    Serial.print(rad2deg(ang));
-    Serial.print(", ");
-    Serial.print(y_goal);
-	Serial.print(", ");
 	Serial.print(goal_reached);
     Serial.println(")");
 }
@@ -379,8 +373,8 @@ void PlanningTask() {
 
         Point_t goals = move(x_index,y_index, Pose.getThetaRadians(), Map);
 
-        x_goal = goals.x*(MAP_X / MAP_RESOLUTION) +36 ;
-        y_goal = goals.y*(MAP_Y / MAP_RESOLUTION) + 36;
+        goal.x = goals.x*(MAP_X / MAP_RESOLUTION) +36 ;
+        goal.y = goals.y*(MAP_Y / MAP_RESOLUTION) + 36;
 
         goal_reached = false;
 
@@ -607,7 +601,7 @@ Point_t getObstacleCoordinates(float distance, float orientation_offset, bool ma
 
 
 
-Point_t obstacleAvoidanceSensors (float x_goal, float y_goal){
+Point_t obstacleAvoidanceSensors(float x_goal, float y_goal){
     Point_t result;
     const float Kg = 0.001; //This can be updated to achieve good obstacle avoidance response
     const float Ko = 1000000; //This can be updated to achieve good obstacle avoidance response
