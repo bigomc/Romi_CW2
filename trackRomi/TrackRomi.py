@@ -9,7 +9,6 @@ import time
 import rangeFinder
 import gridMap
 import croppingExample
-
 # construct the argument parse and parse the arguments
 
 
@@ -44,9 +43,10 @@ time.sleep(2.0)
 
 frame = vs.read()
 frame = frame[1] if args.get("video", False) else frame
+baseImg = frame.copy()
 
 print("Region of interest for romi detecion: \nPress r to reset \n Press c if you are happy!")
-[roi, p1, p2, p3, p4] = croppingExample.get_cropping_map(frame)
+[roi, p1, p2, p3, p4] = croppingExample.get_crop(baseImg)
 
 print("Press 's' if you are happy with the range")
 H_min, S_min, V_min, H_max, S_max, V_max = rangeFinder.rangefinder(roi)# H, S, V (min) | H, S, V (max)
@@ -67,7 +67,7 @@ print("Region of interest to crop the map: \nPress r to reset \n Press c if you 
 print("Making the initial map with points")
 [baseImg, baseSum] = gridMap.gridMapping(frame, False)
 print("The base points that romi is required to complete are {0}".format(baseSum))
-visitedImg = baseImg
+visitedImg = baseImg.copy()
 
 # keep looping
 while (frame is not None):
@@ -77,7 +77,7 @@ while (frame is not None):
     # resize the frame, blur it, and convert it to the HSV
     # color space
     # frame = imutils.resize(frame, width=600)
-    frame = croppingExample.map_cropped(frame, p1, p2, p3, p4)  ## roi
+    frame = croppingExample.four_point_transform(frame, np.array([p1, p2, p3, p4]))  ## roi
     goalImg = frame
 
     blurred = cv2.GaussianBlur(frame, (11, 11), 0)

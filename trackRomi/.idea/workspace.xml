@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="1c6942e3-163c-49e7-8d9a-f9572f7e69c5" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/TrackRomi.py" beforeDir="false" afterPath="$PROJECT_DIR$/TrackRomi.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/romiMap.mp4" beforeDir="false" afterPath="$PROJECT_DIR$/romiMap.mp4" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/romiMap2.mp4" beforeDir="false" afterPath="$PROJECT_DIR$/romiMap2.mp4" afterDir="false" />
-    </list>
+    <list default="true" id="1c6942e3-163c-49e7-8d9a-f9572f7e69c5" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -110,7 +106,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$USER_HOME$/PycharmProjects/trackRomi/gridMap.py" />
+    <property name="last_opened_file_path" value="$USER_HOME$/PycharmProjects/openCVTest1" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RunDashboard">
@@ -313,12 +309,12 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/gridMap.py">
+    <entry file="file://$PROJECT_DIR$/TrackRomi.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1185">
-          <caret line="80" selection-start-line="80" selection-end-line="80" />
+        <state relative-caret-position="200">
+          <caret line="27" selection-start-line="27" selection-end-line="27" />
           <folding>
-            <element signature="e#0#10#0" expanded="true" />
+            <element signature="e#32#61#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -333,12 +329,12 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/TrackRomi.py">
+    <entry file="file://$PROJECT_DIR$/gridMap.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="200">
-          <caret line="27" selection-start-line="27" selection-end-line="27" />
+        <state relative-caret-position="1185">
+          <caret line="80" selection-start-line="80" selection-end-line="80" />
           <folding>
-            <element signature="e#32#61#0" expanded="true" />
+            <element signature="e#0#10#0" expanded="true" />
           </folding>
         </state>
       </provider>
