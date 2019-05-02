@@ -7,6 +7,8 @@ class SharpIR : public AnalogSensor {
     public:
         SharpIR(byte pin);
         float readCalibrated() override;
+    private:
+        float last_distance;
 };
 
 #endif
