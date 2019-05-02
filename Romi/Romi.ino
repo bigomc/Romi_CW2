@@ -111,7 +111,7 @@ enum SensorPosition_t {
     SENSOR_RIGHT,
     SENSOR_UNKNOWN
 };
-const float sensors_offset[] = {-PI/4, 0, PI/4};
+const float sensors_offset[] = {0.383972, 0, -0.383972};
 
 //Heading Flag
 bool heading = false;
@@ -373,110 +373,6 @@ void PlanningTask() {
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * We have implemented a random walk behaviour for you
- * with a *very* basic obstacle avoidance behaviour.
- * It is enough to get the Romi to drive around.  We
- * expect that in your first week, should should get a
- * better obstacle avoidance behaviour implemented for
- * your Experiment Day 1 baseline test.
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-void doMovement() {
-
-    // Static means this variable will keep
-    // its value on each call from loop()
-    static unsigned long walk_update = millis();
-
-    // used to control the forward and turn
-    // speeds of the robot.
-    float forward_bias;
-    float turn_bias;
-    int obs_dect = DistanceFront.readRaw();
-
-//    if (!heading){
-//      forward_bias = MAX_VELOCITY;
-//      // Periodically set a random turn.
-//      // Here, gaussian means we most often drive
-//      // forwards, and occasionally make a big turn.
-//      if( millis() - walk_update > 500 ) {
-//          walk_update = millis();
-//          //randGaussian(mean, sd).  utils.h
-//          turn_bias = randGaussian(0, 6); //0
-//          // Setting a speed demand with these variables
-//          // is automatically captured by a speed PID
-//          // controller in timer3 ISR. Check interrupts.h
-//          // for more information.
-//          left_speed_demand = forward_bias + turn_bias;
-//          right_speed_demand = forward_bias - turn_bias;
-//        }
-//      // Check if we are about to collide.  If so,
-//      // zero forward speed
-//      if(obs_dect> 500){
-//          heading = true;
-//          forward_bias = 0;
-//          target_rot = 90;
-//          zero_rot = Pose.getThetaDegrees();
-//          Serial.print("heading obs: ");
-//          Serial.println(heading);
-//        }
-//      // Check if we are at an edge cell
-//      else if(((MAP_X-Pose.getX())< C_HALF_WIDTH) || ((MAP_Y-Pose.getY())< C_HALF_WIDTH) || (Pose.getX()<C_HALF_WIDTH) || (Pose.getY()<C_HALF_WIDTH)){
-//        forward_bias = 0;
-//        heading = true;
-//        target_rot = 180;
-//        zero_rot = Pose.getThetaDegrees();
-//        Serial.print("heading border: ");
-//        Serial.println(heading);
-//        }
-//
-//      }
-
-//Turning motion to try sensor fusion. Can be deleted later:
-      if (Pose.getThetaDegrees() <=90 && Pose.getThetaDegrees() >-5 ){
-        float forward_bias=0;
-        float turn_bias=3;
-        left_speed_demand = forward_bias - turn_bias;
-        right_speed_demand = forward_bias + turn_bias;
-      } else {
-              stop_mapping =1;
-            }
-
- }
-
-//Function to turn the robot a specific target angle
-void doTurn (){
-
-    if(heading){
-      float current_rot = Pose.getThetaDegrees() - zero_rot;
-      if((target_rot-current_rot>=2) && current_rot>-10){
-        long heading_counts = Pose.angle2counts(2);
-        long targetCounts = getAbsoluteCountRight() + heading_counts; // Turning CCW
-        float rot_demand = HeadingControl.update(targetCounts,getAbsoluteCountRight());
-        LeftMotor.setPower(-rot_demand);
-        RightMotor.setPower(rot_demand);
-        Serial.print(current_rot);
-        Serial.print(" ");
-        Serial.println(target_rot);
-        delay(100);
-
-      } else if (((MAP_X-Pose.getX())< C_HALF_WIDTH) || ((MAP_Y-Pose.getY())< C_HALF_WIDTH) || (Pose.getX()<C_HALF_WIDTH) || (Pose.getY()<C_HALF_WIDTH)){
-            float forward_speed = 10;
-            LeftMotor.setPower(forward_speed);
-            RightMotor.setPower(forward_speed);
-            }
-
-        else {
-              heading =  false;
-              Serial.print("heading: ");
-              Serial.println(heading);
-              Serial.print(current_rot);
-              Serial.print(" ");
-              Serial.println(target_rot);
-              }
-    }
-}
-
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * This function groups up our sensor checks, and then
  * encodes into the map.  To get you started, we are
  * simply placing a character into the map.  However,
@@ -508,30 +404,39 @@ void MappingTask() {
     //OBSTACLE mapping
     float distance;
     Point_t coordinate;
+    const int distance_resolution = 18;
+    const int confidence_distance = 150;
+
     distance = DistanceLeft.readCalibrated();
-    if( distance < 80 && distance > 60 ) {
+    for(int i = 0; (i < distance) && (i < confidence_distance); i += distance_resolution) {
+        coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_LEFT]);
+        Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
+    }
+    if(distance < confidence_distance) {
         coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_LEFT]);
         Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
-    } else {
-        coordinate = getObstacleCoordinates(75, sensors_offset[SENSOR_LEFT]);
+    }
+
+    distance = DistanceFront.readCalibrated();
+    for(int i = 0; (i < distance) && (i < confidence_distance); i += distance_resolution) {
+        coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_FRONT]);
         Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
     }
-    distance = DistanceFront.readCalibrated();
-    if( distance < 200 && distance > 70 ) {
+    if(distance < confidence_distance) {
         coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_FRONT]);
         Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
-    } else {
-        coordinate = getObstacleCoordinates(75, sensors_offset[SENSOR_FRONT]);
+    }
+
+    distance = DistanceRight.readCalibrated();
+    for(int i = 0; (i < distance) && (i < confidence_distance); i += distance_resolution) {
+        coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_RIGHT]);
         Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
     }
-    distance = DistanceRight.readCalibrated();
-    if( distance < 200 && distance > 70 ) {
+    if(distance < confidence_distance) {
         coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_RIGHT]);
         Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
-    } else {
-        coordinate = getObstacleCoordinates(75, sensors_offset[SENSOR_RIGHT]);
-        Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
     }
+
 
     // Check RFID scanner.
     // Look inside RF_interface.h for more info.
@@ -562,10 +467,7 @@ void MappingTask() {
         Map.updateMapFeature(Map.LINE, Pose.getY(), Pose.getX() );
     }
 
-    byte cell_read = Map.readEeprom(Pose.getX(),Pose.getY());
-    if (cell_read != Map.OBSTACLE && cell_read != Map.LINE && cell_read != Map.RFID){
-        Map.updateMapFeature(Map.VISITED,Pose.getY(),Pose.getX());
-    }
+    Map.updateMapFeature(Map.VISITED,Pose.getY(),Pose.getX());
 }
 
 Point_t getObstacleCoordinates(float distance, float orientation_offset) {
