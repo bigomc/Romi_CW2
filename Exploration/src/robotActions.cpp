@@ -19,35 +19,35 @@ sensors check_sensors(float x,float y, short heading, short map[MAX_X][MAX_Y]){
 
 	switch (heading){
 	case 1: //left
-		if(map[(int)x][(int)y-1] == -1)
+		if(map[(int)x-2][(int)y-1] <= 0)
 			sensorValues.left = 0;
-		if(map[(int)x-1][(int)y] == -1)
+		if(map[(int)x-2][(int)y] <= 0)
 			sensorValues.front = 0;
-		if(map[(int)x][(int)y+1] == -1)
+		if(map[(int)x-2][(int)y+1] <= 0)
 			sensorValues.right = 0;
 		break;
 	case 2: // up
-		if(map[(int)x-1][(int)y] == -1)
+		if(map[(int)x-1][(int)y+2] <= 0)
 			sensorValues.left = 0;
-		if(map[(int)x][(int)y+1] == -1)
+		if(map[(int)x][(int)y+2] <= 0)
 			sensorValues.front = 0;
-		if(map[(int)x+1][(int)y] == -1)
+		if(map[(int)x+1][(int)y+2] <= 0)
 			sensorValues.right = 0;
 		break;
 	case 3: // right
-		if(map[(int)x][(int)y+1] == -1)
+		if(map[(int)x+2][(int)y+1] <= 0)
 			sensorValues.left = 0;
-		if(map[(int)x+1][(int)y] == -1)
+		if(map[(int)x+2][(int)y] <= 0)
 			sensorValues.front = 0;
-		if(map[(int)x][(int)y-1] == -1)
+		if(map[(int)x+2][(int)y-1] <= 0)
 			sensorValues.right = 0;
 		break;
 	case 4: // down
-		if(map[(int)x+1][(int)y] == -1)
+		if(map[(int)x+1][(int)y-2] <= 0)
 			sensorValues.left = 0;
-		if(map[(int)x][(int)y-1] == -1)
+		if(map[(int)x][(int)y-2] <= 0)
 			sensorValues.front = 0;
-		if(map[(int)x-1][(int)y] == -1)
+		if(map[(int)x-1][(int)y-2] <= 0)
 			sensorValues.right = 0;
 		break;
 	default:
@@ -111,7 +111,9 @@ Point_t move(float x,float y, short heading, short map[MAX_X][MAX_Y]){
 //	1:explored - avaliable
 //	2:not explored
 //	3:visited
+
 	cellsInMap cells[5];
+
 	for(int i = 1; i < 5; i++){
 		switch (i){
 		case 1:
@@ -130,19 +132,58 @@ Point_t move(float x,float y, short heading, short map[MAX_X][MAX_Y]){
 	}
 
 	Point_t coords = {i_x,i_y,i_h};
+	
+	short av = 0;
+	short ne = 0;
 
-	for(int i = 1; i<5; i++){
-		if(cells[i].value==2){
-			coords.heading = i;
+	for (int i = 1; i < 5; i++)
+	{
+		if (cells[i].value == 1)
+		{
+			av = i;
 			break;
 		}
+		if (cells[i].value == 2)
+		{
+			ne = i;
+			break;
+		}
+	}
+
+	short j=0;
+
+	if (av!=0) 
+	{
+		if (cells[2].value == 1)
+		{
+			j = 2;
+		}
+		else if (cells[4].value == 1)
+		{
+			j = 4;
+		}
 		else
-			if(cells[i].value ==1){
-				coords.x = cells[i].x_c;
-				coords.y = cells[i].y_c;
-				coords.heading = i;
-				break;
-			}
+		{
+			j = av;
+		}
+		coords.x = cells[j].x_c;
+		coords.y = cells[j].y_c;
+		coords.heading = j;
+	}
+	else if (ne!=0)
+	{
+		if (cells[2].value == 2)
+		{
+			coords.heading = 2;
+		}
+		else if (cells[4].value == 2)
+		{
+			coords.heading = 4;
+		}
+		else
+		{
+			coords.heading = ne;
+		}
 	}
 
 	if ((coords.x==i_x)&&(coords.y==i_y)&&(coords.heading==i_h)){
