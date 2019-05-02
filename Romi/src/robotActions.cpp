@@ -89,14 +89,14 @@ Heading_t radToHeading(float rad){
 		return WEST_DIR;
 	if(rad < (-(PI/2)+TOLERANCE) && rad > (-(PI/2)-TOLERANCE))
 		return SOUTH_DIR;
-	
+
 }
 
 
 Point_t move(float x,float y, float rad, Mapper map){
-	
+
 	Heading_t heading = radToHeading(rad);
-	
+
 	//saving last position
 	float i_x = x;
 	float i_y = y;
@@ -165,4 +165,3 @@ Point_t move(float x,float y, float rad, Mapper map){
 
 	return {coords.x,coords.y, coords.heading};
 }
-

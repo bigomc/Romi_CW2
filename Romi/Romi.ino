@@ -37,7 +37,7 @@
 #define TIME_LIMIT  1000000
 #define LINE_CONFIDENCE 70
 #define VMAX    3
-//#define USE_MAGNETOMETER    1
+//#define USE_MAGNETOMETER    1     //To use magnetometer uncomment this line
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Class Instances.                                                              *
@@ -50,7 +50,9 @@ LineSensor    LineLeft(LINE_LEFT_PIN); //Left line sensor
 LineSensor    LineCentre(LINE_CENTRE_PIN); //Centre line sensor
 LineSensor    LineRight(LINE_RIGHT_PIN); //Right line sensor
 
-SharpIR       DistanceSensor(SHARP_IR_PIN); //Distance sensor
+SharpIR       DistanceFront(SHARP_IR_FRONT_PIN); //Distance sensor front
+SharpIR       DistanceLeft(SHARP_IR_LEFT_PIN); //Distance sensor left
+SharpIR       DistanceRight(SHARP_IR_RIGHT_PIN); //Distance sensor right
 
 Imu           imu;
 
@@ -89,7 +91,7 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
 
  // Planning Variables
  bool goal_reached = false;
- const Point_t points[] = {{900, 1100}, {1100, 1100}, {1100, 900}, {900, 900}};
+ const Point_t points[] = {{1764, 900}, {900, 1764}, {36, 900}, {900, 36}};
  int point_index = 0;
 
 //Use these variables to set the demand of the speed controller
@@ -99,6 +101,13 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
 //Mapping variables
 unsigned long count_mapping = 0;
 bool stop_mapping = false;
+enum SensorPosition_t {
+    SENSOR_LEFT,
+    SENSOR_FRONT,
+    SENSOR_RIGHT,
+    SENSOR_UNKNOWN
+};
+const float sensors_offset[] = {0.383972, 0, -0.383972};
 
 //Heading Flag
 bool heading = false;
@@ -243,7 +252,9 @@ void SensorsTask() {
     // the real value when needed instead of read everytime, this reduces
     // latency and speeds up the program execution
 
-    DistanceSensor.read();
+    DistanceLeft.read();
+    DistanceFront.read();
+    DistanceRight.read();
     LineCentre.read();
     LineLeft.read();
     LineRight.read();
@@ -266,20 +277,20 @@ void PrintTask() {
     Serial.print(", ");
     Serial.print(right_speed_demand);
     Serial.print(")] [");
-    Serial.print(DistanceSensor.readCalibrated());
+    Serial.print(DistanceLeft.readCalibrated());
     Serial.print(", ");
+    Serial.print(DistanceFront.readCalibrated());
+    Serial.print(", ");
+    Serial.print(DistanceRight.readCalibrated());
 #ifdef USE_MAGNETOMETER
+    Serial.print(", ");
     Serial.print(Mag.headingFiltered());
-    Serial.print(", ");
 #endif
-    Serial.print(imu.gz);
-    Serial.print(", ");
-    Serial.print("");
     Serial.print("] (");
     Serial.print(x_goal);
     Serial.print(", ");
     Serial.print(y_goal);
-    Serial.println("]");
+    Serial.println(")");
 }
 
 void ControlSpeed() {
@@ -345,12 +356,12 @@ void PlanningTask() {
 
     // Changes the goal when the current goal has reached
     if(goal_reached) {
-            Point_t goals = move(Pose.getX(),Pose.getY(), Pose.getThetaRadians(), Map);
-            x_goal = goals.x;
-            y_goal = goals.y;
+        Point_t goals = move(Pose.getX(),Pose.getY(), Pose.getThetaRadians(), Map);
+        x_goal = goals.x;
+        y_goal = goals.y;
 
-            goal_reached = false;
-        
+        goal_reached = false;
+
     }
 }
 
@@ -372,7 +383,7 @@ void doMovement() {
     // speeds of the robot.
     float forward_bias;
     float turn_bias;
-    int obs_dect = DistanceSensor.readRaw();
+    int obs_dect = DistanceFront.readRaw();
 
 //    if (!heading){
 //      forward_bias = MAX_VELOCITY;
@@ -486,37 +497,51 @@ void MappingTask() {
     // The rationale being:
     // We can't trust very close readings or very far.
     // ...but feel free to investigate this.
-    byte cell_read = Map.readEeprom(Pose.getX(),Pose.getY());
-
-    if (cell_read != (byte)'O' && cell_read != (byte)'L' && cell_read != (byte)'R'){
-        Map.updateMapFeature((byte)'V',Pose.getY(),Pose.getX());
-    }
-
 
     //OBSTACLE mapping
+    float distance;
+    Point_t coordinate;
+    const int distance_resolution = 18;
+    const int min_confidence = 0;
+    const int max_confidence = 150;
 
-    float distance = DistanceSensor.readCalibrated();
-    if( distance < 400 && distance > 100 ) {
-        // We know the romi has the sensor mounted
-        // to the front of the robot.  Therefore, the
-        // sensor faces along Pose.Theta.
-        // We also add on the distance of the
-        // sensor away from the centre of the robot.
-        distance += 80;
-
-
-        // Here we calculate the actual position of the obstacle we have detected
-        float projected_x = Pose.getX() + ( distance * cos( Pose.getThetaRadians() ) );
-        float projected_y = Pose.getY() + ( distance * sin( Pose.getThetaRadians() ) );
-        Map.updateMapFeature( (byte)'O', projected_y, projected_x );
+    distance = DistanceLeft.readCalibrated();
+    for(int i = min_confidence; (i < distance) && (i < max_confidence); i += distance_resolution) {
+        coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_LEFT]);
+        Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
     }
+    if(distance < max_confidence) {
+        coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_LEFT]);
+        Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
+    }
+
+    distance = DistanceFront.readCalibrated();
+    for(int i = min_confidence; (i < distance) && (i < 2*max_confidence); i += distance_resolution) {
+        coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_FRONT]);
+        Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
+    }
+    if(distance < 2*max_confidence) {
+        coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_FRONT]);
+        Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
+    }
+
+    distance = DistanceRight.readCalibrated();
+    for(int i = min_confidence; (i < distance) && (i < max_confidence); i += distance_resolution) {
+        coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_RIGHT]);
+        Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
+    }
+    if(distance < max_confidence) {
+        coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_RIGHT]);
+        Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
+    }
+
 
     // Check RFID scanner.
     // Look inside RF_interface.h for more info.
     if( checkForRFID() ) {
 
         // Add card to map encoding.
-        Map.updateMapFeature( (byte)'R', Pose.getY(), Pose.getX() );
+        Map.updateMapFeature( Map.RFID, Pose.getY(), Pose.getX() );
 
         // you can check the position reference and
         // bearing information of the RFID Card in
@@ -537,6 +562,20 @@ void MappingTask() {
     // Students can do better than this after CW1 ;)
     // Condition will depend on calibration method, the one below worked for my Romi using static calibration
     if( (LineCentre.readCalibrated() + LineLeft.readCalibrated() + LineRight.readCalibrated()) > LINE_CONFIDENCE  ) {
-        Map.updateMapFeature( (byte)'L', Pose.getY(), Pose.getX() );
+        Map.updateMapFeature(Map.LINE, Pose.getY(), Pose.getX() );
     }
+
+    Map.updateMapFeature(Map.VISITED,Pose.getY(),Pose.getX());
+}
+
+Point_t getObstacleCoordinates(float distance, float orientation_offset) {
+    Point_t coordinate;
+
+    distance += 80;
+    coordinate.x = distance * cos(Pose.getThetaRadians() + orientation_offset);
+    coordinate.x += Pose.getX();
+    coordinate.y = distance * sin(Pose.getThetaRadians() + orientation_offset);
+    coordinate.y += Pose.getY();
+
+    return coordinate;
 }
