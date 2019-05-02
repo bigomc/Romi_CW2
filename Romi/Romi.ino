@@ -601,7 +601,8 @@ void obstacleAvoidanceSensors (float x_error, float y_error){
     float Fy_obs;
 
     //Checks if obstacle is too close. Triggered by front sensor only
-    if (dfront< 150){
+    if (dfront< 150 || dright < 150 || dleft < 150){
+      //Force due to Front sensor
       obs_coord = getObstacleCoordinates(dfront, sensors_offset[SENSOR_FRONT],false);
       dist_x = Pose.getX() - obs_coord.x;
       dist_y = Pose.getY() - obs_coord.y;
@@ -612,28 +613,28 @@ void obstacleAvoidanceSensors (float x_error, float y_error){
       Fres_obs_x += Fx_obs;
       Fres_obs_y += Fy_obs;
 
-      if (dright< 150){
-        obs_coord = getObstacleCoordinates(dright, sensors_offset[SENSOR_RIGHT],false);
-        dist_x = Pose.getX() - obs_coord.x;
-        dist_y = Pose.getY() - obs_coord.y;
-        Fobs = Ko/sqrt(sq(dist_x)+sq(dist_y));
-        alpha_obs = atan2(dist_y,dist_x);
-        Fx_obs = Fobs*cos(alpha_obs);
-        Fy_obs = Fobs*sin(alpha_obs);
-        Fres_obs_x += Fx_obs;
-        Fres_obs_y += Fy_obs;
-      }
-      if (dleft< 150){
-        obs_coord = getObstacleCoordinates(dleft, sensors_offset[SENSOR_LEFT],false);
-        dist_x = Pose.getX() - obs_coord.x;
-        dist_y = Pose.getY() - obs_coord.y;
-        Fobs = Ko/sqrt(sq(dist_x)+sq(dist_y));
-        alpha_obs = atan2(dist_y,dist_x);
-        Fx_obs = Fobs*cos(alpha_obs);
-        Fy_obs = Fobs*sin(alpha_obs);
-        Fres_obs_x += Fx_obs;
-        Fres_obs_y += Fy_obs;
-      }
+    //Force due to right sensor
+      obs_coord = getObstacleCoordinates(dright, sensors_offset[SENSOR_RIGHT],false);
+      dist_x = Pose.getX() - obs_coord.x;
+      dist_y = Pose.getY() - obs_coord.y;
+      Fobs = Ko/sqrt(sq(dist_x)+sq(dist_y));
+      alpha_obs = atan2(dist_y,dist_x);
+      Fx_obs = Fobs*cos(alpha_obs);
+      Fy_obs = Fobs*sin(alpha_obs);
+      Fres_obs_x += Fx_obs;
+      Fres_obs_y += Fy_obs;
+
+    //Force due to left sensor
+      obs_coord = getObstacleCoordinates(dleft, sensors_offset[SENSOR_LEFT],false);
+      dist_x = Pose.getX() - obs_coord.x;
+      dist_y = Pose.getY() - obs_coord.y;
+      Fobs = Ko/sqrt(sq(dist_x)+sq(dist_y));
+      alpha_obs = atan2(dist_y,dist_x);
+      Fx_obs = Fobs*cos(alpha_obs);
+      Fy_obs = Fobs*sin(alpha_obs);
+      Fres_obs_x += Fx_obs;
+      Fres_obs_y += Fy_obs;
+      
     }
 
     //Calculate Resultant Force applied on the robot
