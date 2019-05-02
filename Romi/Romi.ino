@@ -116,7 +116,7 @@ enum SensorPosition_t {
     SENSOR_RIGHT,
     SENSOR_UNKNOWN
 };
-const float sensors_offset[] = {0.383972, 0, -0.383972};
+const float sensors_offset[] = {0.383972, 0, -0.610865};
 
 //Heading Flag
 bool heading = false;
@@ -594,7 +594,7 @@ Point_t getObstacleCoordinates(float distance, float orientation_offset, bool ma
 Point_t obstacleAvoidanceSensors (float x_goal, float y_goal){
     Point_t result;
     const float Kg = 0.001; //This can be updated to achieve good obstacle avoidance response
-    const float Ko = 1000000; //This can be updated to achieve good obstacle avoidance response
+    const float Ko = 100000; //This can be updated to achieve good obstacle avoidance response
 
     //Initialise total resultant forces
     float Fx_total = 0;
