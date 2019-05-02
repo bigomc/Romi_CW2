@@ -515,17 +515,17 @@ void MappingTask() {
     Point_t coordinate;
     distance = DistanceLeft.readCalibrated();
     if( distance < 400 && distance > 100 ) {
-        coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_LEFT]);
+        coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_LEFT],true);
         Map.updateMapFeature( (byte)'O', coordinate.y, coordinate.x );
     }
     distance = DistanceFront.readCalibrated();
     if( distance < 400 && distance > 100 ) {
-        coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_FRONT]);
+        coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_FRONT],true);
         Map.updateMapFeature( (byte)'O', coordinate.y, coordinate.x );
     }
     distance = DistanceRight.readCalibrated();
     if( distance < 400 && distance > 100 ) {
-        coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_RIGHT]);
+        coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_RIGHT],true);
         Map.updateMapFeature( (byte)'O', coordinate.y, coordinate.x );
     }
 
@@ -559,14 +559,91 @@ void MappingTask() {
     }
 }
 
-Point_t getObstacleCoordinates(float distance, float orientation_offset) {
-    Point_t coordinate;
+Point_t getObstacleCoordinates(float distance, float orientation_offset, bool mapp) {
 
+    Point_t coordinate;
     distance += 80;
     coordinate.x = distance * cos(Pose.getThetaRadians() + orientation_offset);
-    coordinate.x += Pose.getX();
     coordinate.y = distance * sin(Pose.getThetaRadians() + orientation_offset);
-    coordinate.y += Pose.getY();
+
+    if (mapp){
+      coordinate.x += Pose.getX();
+      coordinate.y += Pose.getY();
+        }
 
     return coordinate;
 }
+
+
+
+void obstacleAvoidanceSensors (float x_error, float y_error){
+
+    //Calculate attractive force from the goal
+    float Kg = 0.01; //This can be updated to achieve good obstacle avoidance response
+    float Fgoal = Kg*sqrt(sq(x_error)+sq(y_error));
+    float alpha_goal = atan2(y_error,x_error);
+    float Fx_goal = Fgoal*cos(alpha_goal);
+    float Fy_goal = Fgoal*sin(alpha_goal);
+    //Calculate repulsive force from the obstacles
+    float Ko = 1000; //This can be updated to achieve good obstacle avoidance response
+    float Fres_obs_x = 0; //Resultant force due to obstacles in x
+    float Fres_obs_y = 0; //Resultant force due to obstacles in y
+    //Read distance sensors
+    float dfront = DistanceFront.readCalibrated();
+    float dleft = DistanceLeft.readCalibrated();
+    float dright = DistanceRight.readCalibrated();
+    Point_t  obs_coord;
+    float dist_x;
+    float dist_y;
+    float Fobs;
+    float alpha_obs;
+    float Fx_obs;
+    float Fy_obs;
+
+    //Checks if obstacle is too close. Triggered by front sensor only
+    if (dfront< 150){
+      obs_coord = getObstacleCoordinates(dfront, sensors_offset[SENSOR_FRONT],false);
+      dist_x = Pose.getX() - obs_coord.x;
+      dist_y = Pose.getY() - obs_coord.y;
+      Fobs = Ko/sqrt(sq(dist_x)+sq(dist_y));
+      alpha_obs = atan2(dist_y,dist_x);
+      Fx_obs = Fobs*cos(alpha_obs);
+      Fy_obs = Fobs*sin(alpha_obs);
+      Fres_obs_x += Fx_obs;
+      Fres_obs_y += Fy_obs;
+
+      if (dright< 150){
+        obs_coord = getObstacleCoordinates(dright, sensors_offset[SENSOR_RIGHT],false);
+        dist_x = Pose.getX() - obs_coord.x;
+        dist_y = Pose.getY() - obs_coord.y;
+        Fobs = Ko/sqrt(sq(dist_x)+sq(dist_y));
+        alpha_obs = atan2(dist_y,dist_x);
+        Fx_obs = Fobs*cos(alpha_obs);
+        Fy_obs = Fobs*sin(alpha_obs);
+        Fres_obs_x += Fx_obs;
+        Fres_obs_y += Fy_obs;
+      }
+      if (dleft< 150){
+        obs_coord = getObstacleCoordinates(dleft, sensors_offset[SENSOR_LEFT],false);
+        dist_x = Pose.getX() - obs_coord.x;
+        dist_y = Pose.getY() - obs_coord.y;
+        Fobs = Ko/sqrt(sq(dist_x)+sq(dist_y));
+        alpha_obs = atan2(dist_y,dist_x);
+        Fx_obs = Fobs*cos(alpha_obs);
+        Fy_obs = Fobs*sin(alpha_obs);
+        Fres_obs_x += Fx_obs;
+        Fres_obs_y += Fy_obs;
+      }
+    }
+
+    //Calculate Resultant Force applied on the robot
+    float Fx_total = Fx_goal + Fres_obs_x;
+    float Fy_total = Fy_goal + Fres_obs_y;
+    //Calculate POLAR COORDINATES
+    float F = sqrt(sq(Fx_total)+sq(Fy_total));
+    float angle = atan2(Fy_total,Fx_total);
+    float vec[] = {F,angle};
+
+    return vec;
+
+    }
