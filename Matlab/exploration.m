@@ -14,6 +14,14 @@ MAX_VAL=25;
 
 %MAP=2*(ones(MAX_X,MAX_Y));
 MAP_R=2*(ones(MAX_X,MAX_Y));
+MAP_R(:,1)=zeros(MAX_Y,1)';
+MAP_R(:,2)=zeros(MAX_Y,1)';
+MAP_R(1,:)=zeros(1,MAX_X);
+MAP_R(2,:)=zeros(1,MAX_X);
+MAP_R(MAX_Y,:)=zeros(1,MAX_X);
+MAP_R(MAX_Y-1,:)=zeros(1,MAX_X)
+MAP_R(:,MAX_Y)=zeros(MAX_Y,1)';
+MAP_R(:,MAX_Y-1)=zeros(MAX_Y,1)';
 
 % Obtain Obstacle, Target and Robot Position
 % Initialize the MAP with input values
@@ -39,8 +47,8 @@ n=0;%Number of Obstacles
      end
  end
  
-x_init = 2;
-y_init = 2;
+x_init = 15;
+y_init = 15;
 
 p = plot(x_init+0.5,y_init+0.5,'bo');
 
@@ -48,8 +56,8 @@ pause(2)
 
 %%
 heading = 2;
-x = 2;
-y = 2;
+x = 15;
+y = 15;
 while (x~=0&&y~=0)
     sensors = check_sensors(x,y,heading,MAP);
     MAP_R = mapping(x,y,heading,sensors,MAP_R);
