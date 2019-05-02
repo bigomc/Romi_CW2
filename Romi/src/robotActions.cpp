@@ -13,50 +13,6 @@
 
 
 
-sensors check_sensors(float x,float y, short heading, short map[MAX_X][MAX_Y]){
-	sensors sensorValues = {1,1,1};
-
-	switch (heading){
-	case 1: //left
-		if(map[(int)x][(int)y-1] == -1)
-			sensorValues.left = 0;
-		if(map[(int)x-1][(int)y] == -1)
-			sensorValues.front = 0;
-		if(map[(int)x][(int)y+1] == -1)
-			sensorValues.right = 0;
-		break;
-	case 2: // up
-		if(map[(int)x-1][(int)y] == -1)
-			sensorValues.left = 0;
-		if(map[(int)x][(int)y+1] == -1)
-			sensorValues.front = 0;
-		if(map[(int)x+1][(int)y] == -1)
-			sensorValues.right = 0;
-		break;
-	case 3: // right
-		if(map[(int)x][(int)y+1] == -1)
-			sensorValues.left = 0;
-		if(map[(int)x+1][(int)y] == -1)
-			sensorValues.front = 0;
-		if(map[(int)x][(int)y-1] == -1)
-			sensorValues.right = 0;
-		break;
-	case 4: // down
-		if(map[(int)x+1][(int)y] == -1)
-			sensorValues.left = 0;
-		if(map[(int)x][(int)y-1] == -1)
-			sensorValues.front = 0;
-		if(map[(int)x-1][(int)y] == -1)
-			sensorValues.right = 0;
-		break;
-	default:
-		sensorValues = {1, 1, 1};
-	}
-
-	return sensorValues;
-}
-
-
 Point_t check_nearest_available(float x, float y, short map[MAX_X][MAX_Y]){
 	short dist = 50;
 	short low_dist = 50;
@@ -128,34 +84,79 @@ Point_t move(float x,float y, float rad, Mapper map){
 	for(int i = 1; i < 5; i++){
 		switch (i){
 		case WEST_DIR:
-			cells[i] = {x-1, y, map.readEeprom(x-1, y)};//left
+			cells[i] = {x-1, y, map.readEeprom((x-1)*(MAP_X / MAP_RESOLUTION) +36, y*(MAP_Y / MAP_RESOLUTION)+36)};//left
 			break;
 		case NORTH_DIR:
-			cells[i] = {x, y+1, map.readEeprom(x, y+1)};//up
+			cells[i] = {x, y+1, map.readEeprom(x*(MAP_X / MAP_RESOLUTION)+36, (y+1)*(MAP_Y / MAP_RESOLUTION)+36)};//up
 			break;
 		case EAST_DIR:
-			cells[i] = {x+1, y, map.readEeprom(x+1, y)};//right
+			cells[i] = {x+1, y, map.readEeprom((x+1)*(MAP_X / MAP_RESOLUTION)+36, y*(MAP_Y / MAP_RESOLUTION)+36)};//right
 			break;
 		case SOUTH_DIR:
-			cells[i] = {x, y-1, map.readEeprom(x, y-1)};//down
+			cells[i] = {x, y-1, map.readEeprom(x*(MAP_X / MAP_RESOLUTION)+36, (y-1)*(MAP_Y / MAP_RESOLUTION)+36)};//down
 			break;
 		}
 	}
 
+	int b = cells[2].value;
+	int c = cells[3].value;
+	int d = cells[4].value;
+	int a = cells[1].value;
+	
+
 	Point_t coords = {i_x,i_y,i_h};
 
-	for(int i = 1; i<5; i++){
-		if(cells[i].value==2){
-			coords.heading = i;
+	short av = 0;
+	short ne = 0;
+
+	for (int i = 1; i < 5; i++)
+	{
+		if (cells[i].value == 4)
+		{
+			av = i;
 			break;
 		}
+		if (cells[i].value == 5)
+		{
+			ne = i;
+			//break;
+		}
+	}
+
+	short j = 0;
+
+	if (av != 0)
+	{
+		if (cells[2].value == 4)
+		{
+			j = 2;
+		}
+		else if (cells[4].value == 4)
+		{
+			j = 4;
+		}
 		else
-			if(cells[i].value ==1){
-				coords.x = cells[i].x_c;
-				coords.y = cells[i].y_c;
-				coords.heading = i;
-				break;
-			}
+		{
+			j = av;
+		}
+		coords.x = cells[j].x_c;
+		coords.y = cells[j].y_c;
+		coords.heading = j;
+	}
+	else if (ne != 0)
+	{
+		if (cells[2].value == 5)
+		{
+			coords.heading = 2;
+		}
+		else if (cells[4].value == 5)
+		{
+			coords.heading = 4;
+		}
+		else
+		{
+			coords.heading = ne;
+		}
 	}
 
 	// if ((coords.x==i_x)&&(coords.y==i_y)&&(coords.heading==i_h)){

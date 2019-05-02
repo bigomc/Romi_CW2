@@ -90,8 +90,9 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
  const float Ks = 0.5;
 
  // Planning Variables
- bool goal_reached = false;
- const Point_t points[] = {{1764, 900}, {900, 1764}, {36, 900}, {900, 36}};
+ volatile bool goal_reached = false;
+ //Point_t points = move(Pose.getX(), Pose.getY(), Pose.getThetaRadians(), Map);
+ //const Point_t points[];// = { {1764, 900}, {900, 1764}, {36, 900}, {900, 36} };
  int point_index = 0;
 
 //Use these variables to set the demand of the speed controller
@@ -140,8 +141,8 @@ void setup()
   Map.printMap();
 
   // Set the initial goal point
-  x_goal = points[point_index].x;
-  y_goal = points[point_index].y;
+  x_goal = Pose.getX();
+  y_goal = Pose.getY();
 
   //Setup RFID card
   //setupRFID();
@@ -290,6 +291,8 @@ void PrintTask() {
     Serial.print(x_goal);
     Serial.print(", ");
     Serial.print(y_goal);
+	Serial.print(", ");
+	Serial.print(goal_reached);
     Serial.println(")");
 }
 
@@ -352,13 +355,17 @@ void ControlPosition() {
 * goal position and make Romi explore the map
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void PlanningTask() {
-    int size = sizeof(points)/sizeof(Point_t);
+    //int size = sizeof(points)/sizeof(Point_t);
 
     // Changes the goal when the current goal has reached
     if(goal_reached) {
-        Point_t goals = move(Pose.getX(),Pose.getY(), Pose.getThetaRadians(), Map);
-        x_goal = goals.x;
-        y_goal = goals.y;
+		int x_index = Pose.getX() / (MAP_X / MAP_RESOLUTION);
+		int y_index = Pose.getY() / (MAP_Y / MAP_RESOLUTION);;
+
+        Point_t goals = move(x_index,y_index, Pose.getThetaRadians(), Map);
+
+        x_goal = goals.x*(MAP_X / MAP_RESOLUTION) +36 ;
+        y_goal = goals.y*(MAP_Y / MAP_RESOLUTION) + 36;
 
         goal_reached = false;
 
