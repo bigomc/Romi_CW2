@@ -4,7 +4,6 @@ python TrackRomi.py --map mapNoRomi.jpg --image romiInMap.png --video romiMap2.m
 
 
 --map specify the address of a picture of the map without the romi
---romiInMap specify any picture of the map where the romi is present to calibrate the image
 --video specify the actual video to analyse or could be changed to webcam
 
 In the terminal, all instructions are specified, however:
