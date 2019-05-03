@@ -10,8 +10,8 @@ const int MAP_X=1800;
 const int MAP_Y=1800;
 const int C_HALF_WIDTH = 36;
 const int BORDER_SIZE = 36;
-const int X_LENGHT = 5;
-const int Y_LENGHT = 5;
+const int X_LENGHT = 25;
+const int Y_LENGHT = 25;
 const int X_ORIGIN = 900;
 const int Y_ORIGIN = 900;
 
