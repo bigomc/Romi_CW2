@@ -246,7 +246,7 @@ void UpdateTask() {
     imu.getFiltered();
 
     Pose.predictAngularVelocity();
-    Pose.updateAngularVelocity(deg2rad(imu.gz));
+    //Pose.updateAngularVelocity(deg2rad(imu.gz));
     Pose.predictOrientation();
 #ifdef USE_MAGNETOMETER
     //Pose.updateOrientation(Mag.headingFiltered());
@@ -550,7 +550,7 @@ void MappingTask() {
         coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_FRONT], true);
         Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
     }
-    if(distance < 2*(max_confidence) {
+    if(distance < 2*(max_confidence)) {
         coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_FRONT], true);
 		if(distance < max_confidence- 72){
 			Map.updateMapFeature(Map.BORDER, coordinate.y, coordinate.x );
