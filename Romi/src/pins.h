@@ -9,12 +9,13 @@
 #define ENCODER_LEFT_A_PIN  26
 
 #define LINE_LEFT_PIN A4 //Pin for the left line sensor
-#define LINE_CENTRE_PIN A3 //Pin for the centre line sensor
+#define LINE_CENTRE_PIN A6 //Pin for the centre line sensor
 #define LINE_RIGHT_PIN A2 //Pin for the right line sensor
 
 #define SHARP_IR_FRONT_PIN A0 //Pin for the IR Distance sensor    (Front)
 #define SHARP_IR_LEFT_PIN A11 //Pin for the IR Distance sensor    (Left)
 #define SHARP_IR_RIGHT_PIN A1 //Pin for the IR Distance sensor    (Right)
+#define SHARP_IR_FRONT2_PIN A3 //Pin for the IR Distance sensor    (Front 2)
 
 #define YELLOW_LED 13
 #define GREEN_LED 30
