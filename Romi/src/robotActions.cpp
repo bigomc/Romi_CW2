@@ -27,8 +27,8 @@ Point_t check_nearest_available(int x_ind, int y_ind, Mapper map) {
 	float x_f = 0;
 	float y_f = 0;
 
-	for (int i = MIN_X; i < MAX_X; i++) {
-		for (int j = MIN_Y; j < MAX_Y; j++) {
+	for (int i = MIN_X; i =< MAX_X; i++) {
+		for (int j = MIN_Y; j =< MAX_Y; j++) {
 			if (map.readEeprom(indToCoord(i), indToCoord(j)) == map.EXPLORED) {
 				dist = sqrt((x_ind - i)*(x_ind - i) + (y_ind - j)*(y_ind - j));
 			}
