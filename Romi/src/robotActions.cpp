@@ -16,22 +16,23 @@
 #define CELL 1
 
 
+short indToCoord(int x) {
+	return x * (MAP_X / MAP_RESOLUTION) + 36;
+}
 
-Point_t check_nearest_available(float x, float y, Mapper map){
-	short dist = 50;
+Point_t check_nearest_available(int x_ind, int y_ind, Mapper map) {
+
+	float dist = 50;
 	short low_dist = 50;
 	float x_f = 0;
 	float y_f = 0;
 
-	short ind_X = x*(MAP_X / MAP_RESOLUTION) +36;
-	short ind_Y = y*(MAP_Y / MAP_RESOLUTION)+36;
-
-	for(int i = MIN_X; i < MAX_X; i++){
-		for(int j = MIN_Y; j< MAX_Y; j++){
-			if(map.readEeprom(ind_X, ind_Y) == map.EXPLORED){
-				dist = sqrt((x-i)*(x-i) + (y-j)*(y-j));
+	for (int i = MIN_X; i < MAX_X; i++) {
+		for (int j = MIN_Y; j < MAX_Y; j++) {
+			if (map.readEeprom(indToCoord(i), indToCoord(j)) == map.EXPLORED) {
+				dist = sqrt((x_ind - i)*(x_ind - i) + (y_ind - j)*(y_ind - j));
 			}
-			if(dist<low_dist){
+			if (dist < low_dist) {
 				low_dist = dist;
 				x_f = i;
 				y_f = j;
@@ -39,9 +40,8 @@ Point_t check_nearest_available(float x, float y, Mapper map){
 		}
 	}
 
-	return {x_f, y_f, 2};
+	return { x_f, y_f, 2};
 }
-
 
 Heading_t radToHeading(float rad){
 	if(rad < (0+TOLERANCE) && rad > (0-TOLERANCE))
