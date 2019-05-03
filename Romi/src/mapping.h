@@ -20,21 +20,12 @@ class Mapper
         byte readEeprom (float x, float y);
         enum Feature{
             OBSTACLE, //0
-<<<<<<< HEAD
-			BORDER,
-            RFID, //1
-            LINE, //2
-            VISITED, //3
-            EXPLORED,//4
-            UNKNOWN//5
-=======
 			BORDER //1
             RFID, //2
             LINE, //3
             VISITED, //4
             EXPLORED,//5
             UNKNOWN//6
->>>>>>> 3d85a76d992e1c3cfd43bf64758394af334de581
         };
         int  indexToPose(int i, int map_size, int resolution);
         int  poseToIndex(int x, int map_size, int resolution);
