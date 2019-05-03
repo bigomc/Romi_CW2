@@ -10,10 +10,11 @@
 #define MAX_X 25+2
 #define MAX_Y 25+2
 #define TOLERANCE 0.78
+#define CELL 1
 
 
 
-Point_t check_nearest_available(float x, float y, short map[MAX_X][MAX_Y]){
+Point_t check_nearest_available(float x, float y, Mapper map){
 	short dist = 50;
 	short low_dist = 50;
 	float x_f = 0;
@@ -21,7 +22,7 @@ Point_t check_nearest_available(float x, float y, short map[MAX_X][MAX_Y]){
 
 	for(int i = 0; i < MAX_X; i++){
 		for(int j = 0; j< MAX_Y; j++){
-			if(map[i][j] == 1){
+			if(map.readEeprom((x-CELL)*(MAP_X / MAP_RESOLUTION) +36, y*(MAP_Y / MAP_RESOLUTION)+36) == map.EXPLORED){
 				dist = sqrt((x-i)*(x-i) + (y-j)*(y-j));
 			}
 			if(dist<low_dist){
@@ -84,16 +85,16 @@ Point_t move(float x,float y, float rad, Mapper map){
 	for(int i = 1; i < 5; i++){
 		switch (i){
 		case WEST_DIR:
-			cells[i] = {x-1, y, map.readEeprom((x-1)*(MAP_X / MAP_RESOLUTION) +36, y*(MAP_Y / MAP_RESOLUTION)+36)};//left
+			cells[i] = {x-CELL, y, map.readEeprom((x-CELL)*(MAP_X / MAP_RESOLUTION) +36, y*(MAP_Y / MAP_RESOLUTION)+36)};//left
 			break;
 		case NORTH_DIR:
-			cells[i] = {x, y+1, map.readEeprom(x*(MAP_X / MAP_RESOLUTION)+36, (y+1)*(MAP_Y / MAP_RESOLUTION)+36)};//up
+			cells[i] = {x, y+CELL, map.readEeprom(x*(MAP_X / MAP_RESOLUTION)+36, (y+CELL)*(MAP_Y / MAP_RESOLUTION)+36)};//up
 			break;
 		case EAST_DIR:
-			cells[i] = {x+1, y, map.readEeprom((x+1)*(MAP_X / MAP_RESOLUTION)+36, y*(MAP_Y / MAP_RESOLUTION)+36)};//right
+			cells[i] = {x+CELL, y, map.readEeprom((x+CELL)*(MAP_X / MAP_RESOLUTION)+36, y*(MAP_Y / MAP_RESOLUTION)+36)};//right
 			break;
 		case SOUTH_DIR:
-			cells[i] = {x, y-1, map.readEeprom(x*(MAP_X / MAP_RESOLUTION)+36, (y-1)*(MAP_Y / MAP_RESOLUTION)+36)};//down
+			cells[i] = {x, y-CELL, map.readEeprom(x*(MAP_X / MAP_RESOLUTION)+36, (y-CELL)*(MAP_Y / MAP_RESOLUTION)+36)};//down
 			break;
 		}
 	}
@@ -102,7 +103,7 @@ Point_t move(float x,float y, float rad, Mapper map){
 	int c = cells[3].value;
 	int d = cells[4].value;
 	int a = cells[1].value;
-	
+
 
 	Point_t coords = {i_x,i_y,i_h};
 
@@ -159,9 +160,9 @@ Point_t move(float x,float y, float rad, Mapper map){
 		}
 	}
 
-	// if ((coords.x==i_x)&&(coords.y==i_y)&&(coords.heading==i_h)){
-		// coords = check_nearest_available(coords.x, coords.y, map);
-	// }
+	if ((coords.x==i_x)&&(coords.y==i_y)&&(coords.heading==i_h)){
+		coords = check_nearest_available(coords.x, coords.y, map);
+	}
 
 
 	return {coords.x,coords.y, coords.heading};

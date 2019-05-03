@@ -1,7 +1,7 @@
 #include "irproximity.h"
 
 SharpIR::SharpIR(byte line_pin) : AnalogSensor(line_pin) {
-    digitalWrite(pin, LOW);
+    //digitalWrite(pin, LOW);
 }
 
 /*
@@ -23,9 +23,9 @@ float SharpIR::readCalibrated() {
     const float exponent = (1/-0.7); //Calibration values for my Romi
     distance = pow( ( distance / 76.14 ), exponent);
 
-    distance = (alpha * distance) + ((1 - alpha)*last_distance);
+    // distance = (alpha * distance) + ((1 - alpha) * last_distance);
 
     last_distance = distance;
 
-    return distance;
+    return last_distance;
 }

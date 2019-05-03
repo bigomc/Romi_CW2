@@ -37,8 +37,8 @@ class Kinematics
 
     private:
 
-        float x=936;
-        float y=936;
+        float x=900;
+        float y=900;
         float theta=0;
         float theta_hat = 0;
         float angular_velocity = 0;

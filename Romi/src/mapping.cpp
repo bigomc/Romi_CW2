@@ -83,11 +83,15 @@ void Mapper::updateMapFeature(byte feature, int y, int x)
     }
 }
 
-byte Mapper::readEeprom (float x, float y){
-    byte value;
-    int x_index = poseToIndex(x, MAP_X, MAP_RESOLUTION);
-    int y_index = poseToIndex(y, MAP_Y, MAP_RESOLUTION);
-    int eeprom_address = (x_index * MAP_RESOLUTION) + y_index;
-    value = EEPROM.read(eeprom_address);
-    return value;
+byte Mapper::readEeprom (float x, float y) {
+    if((x >= MAP_X) || (x < 0) || (y >= MAP_Y) || (y < 0)) {
+        return OBSTACLE;
+    } else {
+        byte value;
+        int x_index = poseToIndex(x, MAP_X, MAP_RESOLUTION);
+        int y_index = poseToIndex(y, MAP_Y, MAP_RESOLUTION);
+        int eeprom_address = (x_index * MAP_RESOLUTION) + y_index;
+        value = EEPROM.read(eeprom_address);
+        return value;
+    }
 }

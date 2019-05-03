@@ -34,10 +34,11 @@
 #define BAUD_RATE 115200
 #define SAMPLING_TICK_PERIOD    5
 #define MAX_VELOCITY    3
-#define TIME_LIMIT  1000000
+#define TIME_LIMIT  180000
 #define LINE_CONFIDENCE 70
 #define VMAX    3
 //#define USE_MAGNETOMETER    1     //To use magnetometer uncomment this line
+//#define USE_OBSTACLE_AVOIDANCE  1
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Class Instances.                                                              *
@@ -67,7 +68,7 @@ Motor         RightMotor(MOTOR_PWM_R, MOTOR_DIR_R);
 PID           LeftSpeedControl( 10, 0.1, 1 );
 PID           RightSpeedControl( 10, 0.1, 1 );
 PID           HeadingControl( 7, 0, 7 );
-PID           TurningControl( 0.7, 0, 0.6 );
+PID           TurningControl( 1, 0, 0.6 );
 
 Mapper        Map; //Class for representing the map
 
@@ -86,7 +87,7 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
  float y_error;
  float orientation_error;
  float position_error;
- const float Ks = PI;
+ const float Ks = PI/4;
 
  // Planning Variables
  volatile bool goal_reached = false;
@@ -113,7 +114,7 @@ enum SensorPosition_t {
     SENSOR_RIGHT,
     SENSOR_UNKNOWN
 };
-const float sensors_offset[] = {0.383972, 0, -0.872665};
+const float sensors_offset[] = {0.872665, 0, -0.872665};
 
 //Heading Flag
 bool heading = false;
@@ -333,8 +334,17 @@ void ControlPosition() {
     mag = direction.x;
     ang = direction.y - Pose.getThetaRadians();
 
+#ifdef USE_OBSTACLE_AVOIDANCE
     position_error = direction.x;
     orientation_error = direction.y - Pose.getThetaRadians();
+#else
+    position_error = sqrt(x_error*x_error + y_error*y_error);
+    if(position_error > 1) {
+        position_error = 1;
+    }
+    orientation_error = atan2(y_error, x_error) - Pose.getThetaRadians();
+#endif
+
     if(orientation_error < -PI ){
         orientation_error += (2 * PI);
     }
@@ -342,7 +352,7 @@ void ControlPosition() {
         orientation_error -= (2 * PI);
     }
 
-    if(sqrt((x_error * x_error) + (y_error * y_error)) > 5) {
+    if(sqrt(x_error*x_error + y_error*y_error) > 5) {
         sat = min(Ks, max(-Ks, orientation_error));
 
         turning = TurningControl.update(orientation_error, 0);
