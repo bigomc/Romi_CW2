@@ -12,7 +12,6 @@ SharpIR::SharpIR(byte line_pin) : AnalogSensor(line_pin) {
  * Romi firmly and has a clear line of sight!
  */
 float SharpIR::readCalibrated() {
-
     float distance = (float)last_value;
     const float alpha = 0.4;
 
@@ -27,6 +26,5 @@ float SharpIR::readCalibrated() {
 
     last_distance = distance;
 
-    //return last_distance;
-	return 500;
+    return last_distance;
 }
