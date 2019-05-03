@@ -593,8 +593,8 @@ Point_t getObstacleCoordinates(float distance, float orientation_offset, bool ma
 
 Point_t obstacleAvoidanceSensors (float x_goal, float y_goal){
     Point_t result;
-    const float Kg = 0.001; //This can be updated to achieve good obstacle avoidance response
-    const float Ko = 100000; //This can be updated to achieve good obstacle avoidance response
+    const float Kg = 0.01; //This can be updated to achieve good obstacle avoidance response
+    const float Ko = 10000; //This can be updated to achieve good obstacle avoidance response
 
     //Initialise total resultant forces
     float Fx_total = 0;
