@@ -34,7 +34,7 @@
 #define BAUD_RATE 115200
 #define SAMPLING_TICK_PERIOD    5
 #define MAX_VELOCITY    3
-#define TIME_LIMIT  180000
+#define TIME_LIMIT  1800000
 #define LINE_CONFIDENCE 70
 #define VMAX    3
 //#define USE_MAGNETOMETER    1     //To use magnetometer uncomment this line
@@ -87,7 +87,7 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
  float y_error;
  float orientation_error;
  float position_error;
- const float Ks = PI/4;
+ const float Ks = PI/8;
 
  // Planning Variables
  volatile bool goal_reached = false;

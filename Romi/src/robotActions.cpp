@@ -7,9 +7,10 @@
 
 #include <Arduino.h>
 #include "robotActions.h"
+
 #define MAX_X 25+2
 #define MAX_Y 25+2
-#define TOLERANCE 0.78
+#define TOLERANCE 0.8
 #define CELL 1
 
 
@@ -112,12 +113,12 @@ Point_t move(float x,float y, float rad, Mapper map){
 
 	for (int i = 1; i < 5; i++)
 	{
-		if (cells[i].value == 4)
+		if (cells[i].value == map.EXPLORED)
 		{
 			av = i;
 			break;
 		}
-		if (cells[i].value == 5)
+		if (cells[i].value == map.UNKNOWN)
 		{
 			ne = i;
 			//break;
@@ -128,11 +129,11 @@ Point_t move(float x,float y, float rad, Mapper map){
 
 	if (av != 0)
 	{
-		if (cells[2].value == 4)
+		if (cells[2].value == map.EXPLORED)
 		{
 			j = 2;
 		}
-		else if (cells[4].value == 4)
+		else if (cells[4].value == map.EXPLORED)
 		{
 			j = 4;
 		}
@@ -146,11 +147,11 @@ Point_t move(float x,float y, float rad, Mapper map){
 	}
 	else if (ne != 0)
 	{
-		if (cells[2].value == 5)
+		if (cells[2].value == map.UNKNOWN)
 		{
 			coords.heading = 2;
 		}
-		else if (cells[4].value == 5)
+		else if (cells[4].value == map.UNKNOWN)
 		{
 			coords.heading = 4;
 		}

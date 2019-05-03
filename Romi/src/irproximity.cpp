@@ -27,5 +27,6 @@ float SharpIR::readCalibrated() {
 
     last_distance = distance;
 
-    return last_distance;
+    //return last_distance;
+	return 500;
 }
