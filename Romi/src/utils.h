@@ -5,6 +5,12 @@
 extern "C" {
 #endif
 
+struct Point_tag {
+    float x;
+    float y;
+    short heading;
+} typedef Point_t;
+
 float rad2deg(float rad);
 
 float deg2rad(float deg);

@@ -22,6 +22,7 @@
 #include "src/Pushbutton.h"
 #include "src/Scheduler.h"
 #include "src/wheels.h"
+#include "src/robotActions.h"
 
 
 
@@ -33,15 +34,11 @@
 #define BAUD_RATE 115200
 #define SAMPLING_TICK_PERIOD    5
 #define MAX_VELOCITY    3
-#define TIME_LIMIT  1000000
+#define TIME_LIMIT  180000
 #define LINE_CONFIDENCE 70
 #define VMAX    3
 //#define USE_MAGNETOMETER    1     //To use magnetometer uncomment this line
-
-struct Point_tag {
-    float x;
-    float y;
-} typedef Point_t;
+//#define USE_OBSTACLE_AVOIDANCE  1
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Class Instances.                                                              *
@@ -70,8 +67,8 @@ Motor         RightMotor(MOTOR_PWM_R, MOTOR_DIR_R);
 //These work for our Romi - We strongly suggest you perform your own tuning
 PID           LeftSpeedControl( 10, 0.1, 1 );
 PID           RightSpeedControl( 10, 0.1, 1 );
-PID           HeadingControl( 4, 0, 1 );
-PID           TurningControl( 0.7, 0, 0.6 );
+PID           HeadingControl( 7, 0, 7 );
+PID           TurningControl( 1, 0, 0.6 );
 
 Mapper        Map; //Class for representing the map
 
@@ -85,18 +82,24 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
  // Variables of the position goal
- float x_goal;
- float y_goal;
+ Point_t goal;
  float x_error;
  float y_error;
  float orientation_error;
  float position_error;
- const float Ks = 0.5;
+ const float Ks = PI/4;
 
  // Planning Variables
- bool goal_reached = false;
- const Point_t points[] = {{1764, 900}, {900, 1764}, {36, 900}, {900, 36}};
+ volatile bool goal_reached = false;
+ //Point_t points = move(Pose.getX(), Pose.getY(), Pose.getThetaRadians(), Map);
+ //const Point_t points[];// = { {1764, 900}, {900, 1764}, {36, 900}, {900, 36} };
  int point_index = 0;
+
+ // Obstacle avoidance Variables
+ float mag;
+ float ang;
+ float obs_x;
+ float obs_y;
 
 //Use these variables to set the demand of the speed controller
  float left_speed_demand = 0;
@@ -111,7 +114,7 @@ enum SensorPosition_t {
     SENSOR_RIGHT,
     SENSOR_UNKNOWN
 };
-const float sensors_offset[] = {0.383972, 0, -0.383972};
+const float sensors_offset[] = {0.872665, 0, -0.872665};
 
 //Heading Flag
 bool heading = false;
@@ -144,8 +147,8 @@ void setup()
   Map.printMap();
 
   // Set the initial goal point
-  x_goal = points[point_index].x;
-  y_goal = points[point_index].y;
+  goal.x = Pose.getX();
+  goal.y = Pose.getY();
 
   //Setup RFID card
   //setupRFID();
@@ -281,7 +284,7 @@ void PrintTask() {
     Serial.print(", ");
     Serial.print(right_speed_demand);
     Serial.print(")] [");
-    Serial.print(DistanceLeft.readCalibrated());
+    Serial.print(DistanceLeft.readRaw());
     Serial.print(", ");
     Serial.print(DistanceFront.readCalibrated());
     Serial.print(", ");
@@ -291,9 +294,11 @@ void PrintTask() {
     Serial.print(Mag.headingFiltered());
 #endif
     Serial.print("] (");
-    Serial.print(x_goal);
+    Serial.print(goal.x);
     Serial.print(", ");
-    Serial.print(y_goal);
+    Serial.print(goal.y);
+    Serial.print(", ");
+	Serial.print(goal_reached);
     Serial.println(")");
 }
 
@@ -321,12 +326,25 @@ void ControlPosition() {
     float offset = 0;
     float turning;
     float ahead;
+    float x_error = goal.x - Pose.getX();
+    float y_error = goal.y - Pose.getY();
+    Point_t direction;
 
-    x_error = x_goal - Pose.getX();
-    y_error = y_goal - Pose.getY();
+    direction = obstacleAvoidanceSensors (goal.x, goal.y);
+    mag = direction.x;
+    ang = direction.y - Pose.getThetaRadians();
 
+#ifdef USE_OBSTACLE_AVOIDANCE
+    position_error = direction.x;
+    orientation_error = direction.y - Pose.getThetaRadians();
+#else
     position_error = sqrt(x_error*x_error + y_error*y_error);
+    if(position_error > 1) {
+        position_error = 1;
+    }
     orientation_error = atan2(y_error, x_error) - Pose.getThetaRadians();
+#endif
+
     if(orientation_error < -PI ){
         orientation_error += (2 * PI);
     }
@@ -334,7 +352,7 @@ void ControlPosition() {
         orientation_error -= (2 * PI);
     }
 
-    if(position_error > 10) {
+    if(sqrt(x_error*x_error + y_error*y_error) > 5) {
         sat = min(Ks, max(-Ks, orientation_error));
 
         turning = TurningControl.update(orientation_error, 0);
@@ -356,21 +374,126 @@ void ControlPosition() {
 * goal position and make Romi explore the map
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 void PlanningTask() {
-    int size = sizeof(points)/sizeof(Point_t);
+    //int size = sizeof(points)/sizeof(Point_t);
 
     // Changes the goal when the current goal has reached
     if(goal_reached) {
+		int x_index = Pose.getX() / (MAP_X / MAP_RESOLUTION);
+		int y_index = Pose.getY() / (MAP_Y / MAP_RESOLUTION);;
 
-        // Verify the size of the goals
-        if(point_index < (size - 1)) {
-            goal_reached = false;
+        Point_t goals = move(x_index,y_index, Pose.getThetaRadians(), Map);
 
-            point_index++;
-            x_goal = points[point_index].x;
-            y_goal = points[point_index].y;
-        }
+        goal.x = goals.x*(MAP_X / MAP_RESOLUTION) +36 ;
+        goal.y = goals.y*(MAP_Y / MAP_RESOLUTION) + 36;
+
+        goal_reached = false;
+
     }
 }
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * We have implemented a random walk behaviour for you
+ * with a *very* basic obstacle avoidance behaviour.
+ * It is enough to get the Romi to drive around.  We
+ * expect that in your first week, should should get a
+ * better obstacle avoidance behaviour implemented for
+ * your Experiment Day 1 baseline test.
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+void doMovement() {
+
+    // Static means this variable will keep
+    // its value on each call from loop()
+    static unsigned long walk_update = millis();
+
+    // used to control the forward and turn
+    // speeds of the robot.
+    float forward_bias;
+    float turn_bias;
+    int obs_dect = DistanceFront.readRaw();
+
+//    if (!heading){
+//      forward_bias = MAX_VELOCITY;
+//      // Periodically set a random turn.
+//      // Here, gaussian means we most often drive
+//      // forwards, and occasionally make a big turn.
+//      if( millis() - walk_update > 500 ) {
+//          walk_update = millis();
+//          //randGaussian(mean, sd).  utils.h
+//          turn_bias = randGaussian(0, 6); //0
+//          // Setting a speed demand with these variables
+//          // is automatically captured by a speed PID
+//          // controller in timer3 ISR. Check interrupts.h
+//          // for more information.
+//          left_speed_demand = forward_bias + turn_bias;
+//          right_speed_demand = forward_bias - turn_bias;
+//        }
+//      // Check if we are about to collide.  If so,
+//      // zero forward speed
+//      if(obs_dect> 500){
+//          heading = true;
+//          forward_bias = 0;
+//          target_rot = 90;
+//          zero_rot = Pose.getThetaDegrees();
+//          Serial.print("heading obs: ");
+//          Serial.println(heading);
+//        }
+//      // Check if we are at an edge cell
+//      else if(((MAP_X-Pose.getX())< C_HALF_WIDTH) || ((MAP_Y-Pose.getY())< C_HALF_WIDTH) || (Pose.getX()<C_HALF_WIDTH) || (Pose.getY()<C_HALF_WIDTH)){
+//        forward_bias = 0;
+//        heading = true;
+//        target_rot = 180;
+//        zero_rot = Pose.getThetaDegrees();
+//        Serial.print("heading border: ");
+//        Serial.println(heading);
+//        }
+//
+//      }
+
+//Turning motion to try sensor fusion. Can be deleted later:
+      if (Pose.getThetaDegrees() <=90 && Pose.getThetaDegrees() >-5 ){
+        float forward_bias=0;
+        float turn_bias=3;
+        left_speed_demand = forward_bias - turn_bias;
+        right_speed_demand = forward_bias + turn_bias;
+      } else {
+              stop_mapping =1;
+            }
+
+ }
+
+//Function to turn the robot a specific target angle
+void doTurn (){
+
+    if(heading){
+      float current_rot = Pose.getThetaDegrees() - zero_rot;
+      if((target_rot-current_rot>=2) && current_rot>-10){
+        long heading_counts = Pose.angle2counts(2);
+        long targetCounts = getAbsoluteCountRight() + heading_counts; // Turning CCW
+        float rot_demand = HeadingControl.update(targetCounts,getAbsoluteCountRight());
+        LeftMotor.setPower(-rot_demand);
+        RightMotor.setPower(rot_demand);
+        Serial.print(current_rot);
+        Serial.print(" ");
+        Serial.println(target_rot);
+        delay(100);
+
+      } else if (((MAP_X-Pose.getX())< C_HALF_WIDTH) || ((MAP_Y-Pose.getY())< C_HALF_WIDTH) || (Pose.getX()<C_HALF_WIDTH) || (Pose.getY()<C_HALF_WIDTH)){
+            float forward_speed = 10;
+            LeftMotor.setPower(forward_speed);
+            RightMotor.setPower(forward_speed);
+            }
+
+        else {
+              heading =  false;
+              Serial.print("heading: ");
+              Serial.println(heading);
+              Serial.print(current_rot);
+              Serial.print(" ");
+              Serial.println(target_rot);
+              }
+    }
+}
+
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * This function groups up our sensor checks, and then
@@ -410,31 +533,31 @@ void MappingTask() {
 
     distance = DistanceLeft.readCalibrated();
     for(int i = min_confidence; (i < distance) && (i < max_confidence); i += distance_resolution) {
-        coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_LEFT]);
+        coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_LEFT], true);
         Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
     }
     if(distance < max_confidence) {
-        coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_LEFT]);
+        coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_LEFT], true);
         Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
     }
 
     distance = DistanceFront.readCalibrated();
     for(int i = min_confidence; (i < distance) && (i < 2*max_confidence); i += distance_resolution) {
-        coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_FRONT]);
+        coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_FRONT], true);
         Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
     }
     if(distance < 2*max_confidence) {
-        coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_FRONT]);
+        coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_FRONT], true);
         Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
     }
 
     distance = DistanceRight.readCalibrated();
     for(int i = min_confidence; (i < distance) && (i < max_confidence); i += distance_resolution) {
-        coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_RIGHT]);
+        coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_RIGHT], true);
         Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
     }
     if(distance < max_confidence) {
-        coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_RIGHT]);
+        coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_RIGHT], true);
         Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
     }
 
@@ -471,14 +594,118 @@ void MappingTask() {
     Map.updateMapFeature(Map.VISITED,Pose.getY(),Pose.getX());
 }
 
-Point_t getObstacleCoordinates(float distance, float orientation_offset) {
-    Point_t coordinate;
+Point_t getObstacleCoordinates(float distance, float orientation_offset, bool mapp) {
 
+    Point_t coordinate;
     distance += 80;
     coordinate.x = distance * cos(Pose.getThetaRadians() + orientation_offset);
-    coordinate.x += Pose.getX();
     coordinate.y = distance * sin(Pose.getThetaRadians() + orientation_offset);
-    coordinate.y += Pose.getY();
+
+    if (mapp) {
+      coordinate.x += Pose.getX();
+      coordinate.y += Pose.getY();
+    }
 
     return coordinate;
+}
+
+
+
+Point_t obstacleAvoidanceSensors(float x_goal, float y_goal){
+    Point_t result;
+    const float Kg = 0.001; //This can be updated to achieve good obstacle avoidance response
+    const float Ko = 1000000; //This can be updated to achieve good obstacle avoidance response
+
+    //Initialise total resultant forces
+    float Fx_total = 0;
+    float Fy_total = 0;
+    float Fx_temp = 0;
+    float Fy_temp = 0;
+
+    //Calculate attractive force from the goal
+    float x_error = x_goal - Pose.getX();
+    float y_error = y_goal - Pose.getY();
+    float Fgoal = Kg*sqrt(sq(x_error)+sq(y_error));
+    float alpha_goal = atan2(y_error,x_error);
+    Fx_temp = Fgoal*cos(alpha_goal);
+    Fy_temp = Fgoal*sin(alpha_goal);
+
+    Fx_total += Fx_temp;
+    Fy_total += Fy_temp;
+
+    //Calculate repulsive force from the obstacles
+    float Fres_obs_x = 0; //Resultant force due to obstacles in x
+    float Fres_obs_y = 0; //Resultant force due to obstacles in y
+    //Read distance sensors
+    float dfront = DistanceFront.readCalibrated();
+    float dleft = DistanceLeft.readCalibrated();
+    float dright = DistanceRight.readCalibrated();
+
+    Point_t  obs_coord;
+    float dist_x;
+    float dist_y;
+    float Fobs;
+    float alpha_obs;
+    float Fx_obs;
+    float Fy_obs;
+
+    //Checks if obstacle is too close. Triggered by front sensor only
+    if (dfront< 150){
+      //Force due to Front sensor
+      obs_coord = getObstacleCoordinates(dfront, sensors_offset[SENSOR_FRONT],false);
+      dist_x = - obs_coord.x;
+      dist_y = - obs_coord.y;
+      Fobs = Ko/sqrt(sq(dist_x)+sq(dist_y));
+      alpha_obs = atan2(dist_y,dist_x);
+      Fx_obs = Fobs*cos(alpha_obs);
+      Fy_obs = Fobs*sin(alpha_obs);
+      Fres_obs_x += Fx_obs;
+      Fres_obs_y += Fy_obs;
+    }
+
+    //obs_x = obs_coord.x;
+    //obs_y = obs_coord.y;
+
+    if (dright < 150){
+      //Force due to right sensor
+        obs_coord = getObstacleCoordinates(dright, sensors_offset[SENSOR_RIGHT],false);
+        dist_x = - obs_coord.x;
+        dist_y = - obs_coord.y;
+        Fobs = Ko/sqrt(sq(dist_x)+sq(dist_y));
+        alpha_obs = atan2(dist_y,dist_x);
+        Fx_obs = Fobs*cos(alpha_obs);
+        Fy_obs = Fobs*sin(alpha_obs);
+        Fres_obs_x += Fx_obs;
+        Fres_obs_y += Fy_obs;
+    }
+
+    // if (dleft < 150){
+    //   //Force due to left sensor
+    //   obs_coord = getObstacleCoordinates(dleft, sensors_offset[SENSOR_LEFT],false);
+    //   dist_x = - obs_coord.x;
+    //   dist_y = - obs_coord.y;
+    //   Fobs = Ko/sqrt(sq(dist_x)+sq(dist_y));
+    //   alpha_obs = atan2(dist_y,dist_x);
+    //   Fx_obs = Fobs*cos(alpha_obs);
+    //   Fy_obs = Fobs*sin(alpha_obs);
+    //   Fres_obs_x += Fx_obs;
+    //   Fres_obs_y += Fy_obs;
+    //
+    // }
+
+    //Calculate Resultant Force applied on the robot
+    Fx_total += Fres_obs_x;
+    Fy_total += Fres_obs_y;
+
+    //Calculate POLAR COORDINATES
+    float angle = atan2(Fy_total,Fx_total);
+    float F = sqrt(sq(Fx_total)+sq(Fy_total));
+    if(F > 1) {
+        F = 1;
+    }
+
+    result.x = F;
+    result.y = angle;
+
+    return result;
 }
