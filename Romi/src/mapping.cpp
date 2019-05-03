@@ -93,7 +93,10 @@ void Mapper::updateMapFeature(byte feature, int y, int x)
 }
 
 byte Mapper::readEeprom (float x, float y) {
-    if((x >= 900 + (72 * 5)) || (x < 900 - (72 * 5)) || (y >= 900 + (72 * 5)) || (y < 900 - (72 * 5))) {
+    if((x >= X_ORIGIN - ((MAP_X/MAP_RESOLUTION) * (X_LENGHT/2))) ||
+        (x < X_ORIGIN + ((MAP_X/MAP_RESOLUTION) * (X_LENGHT/2))) ||
+        (y >= Y_ORIGIN - ((MAP_Y/MAP_RESOLUTION) * (Y_LENGHT/2))) ||
+        (y < Y_ORIGIN + ((MAP_Y/MAP_RESOLUTION) * (Y_LENGHT/2)))) {
         return BORDER;
     } else {
         byte value;
