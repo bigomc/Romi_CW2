@@ -20,7 +20,7 @@ class Mapper
         byte readEeprom (float x, float y);
         enum Feature{
             OBSTACLE, //0
-			BORDER //1
+			BORDER, //1
             RFID, //2
             LINE, //3
             VISITED, //4

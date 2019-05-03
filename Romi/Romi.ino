@@ -535,7 +535,7 @@ void MappingTask() {
     for(int i = min_confidence; (i < distance - 72) && (i < max_confidence); i += distance_resolution) {
         coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_LEFT], true);
         Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
-		Map.updateMapFeature(MAP.BORDER, coordinate.y, coordinate.x);
+		Map.updateMapFeature(Map.BORDER, coordinate.y, coordinate.x);
     }
     if(distance < max_confidence) {
         coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_LEFT], true);
@@ -546,7 +546,7 @@ void MappingTask() {
     for(int i = min_confidence; (i < distance - 72) && (i < 2*max_confidence); i += distance_resolution) {
         coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_FRONT], true);
         Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
-		Map.updateMapFeature(MAP.BORDER, coordinate.y, coordinate.x);
+		Map.updateMapFeature(Map.BORDER, coordinate.y, coordinate.x);
     }
     if(distance < 2*max_confidence) {
         coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_FRONT], true);
@@ -557,7 +557,7 @@ void MappingTask() {
     for(int i = min_confidence; (i < distance - 72) && (i < max_confidence); i += distance_resolution) {
         coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_RIGHT], true);
         Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
-		Map.updateMapFeature(MAP.BORDER, coordinate.y, coordinate.x);
+		Map.updateMapFeature(Map.BORDER, coordinate.y, coordinate.x);
     }
     if(distance < max_confidence) {
         coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_RIGHT], true);
