@@ -34,11 +34,11 @@
 #define BAUD_RATE 115200
 #define SAMPLING_TICK_PERIOD    5
 #define MAX_VELOCITY    3
-#define TIME_LIMIT  180000
+#define TIME_LIMIT  1800000
 #define LINE_CONFIDENCE 50
 #define VMAX    3
 //#define USE_MAGNETOMETER    1     //To use magnetometer uncomment this line
-#define USE_OBSTACLE_AVOIDANCE  1
+//define USE_OBSTACLE_AVOIDANCE  1
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Class Instances.                                                              *
@@ -222,12 +222,11 @@ void setup()
     createTask(UpdateTask, SAMPLING_TICK_PERIOD);
     createTask(ControlSpeed, 10);
     createTask(ControlPosition, 10);
-    //createTask(doMovement, 20);
-    //createTask(doTurn, 40);
     createTask(SensorsTask, 50);
     createTask(MappingTask, 50);
     createTask(PlanningTask, 100);
     createTask(PrintTask, 500);
+    createTask(PrintMapTask, 5000);
     count_mapping = millis ();
 }
 
@@ -289,7 +288,7 @@ void PrintTask() {
     Serial.print(", ");
     Serial.print(right_speed_demand);
     Serial.print(")] [");
-    Serial.print(DistanceLeft.readRaw());
+    Serial.print(DistanceLeft.readCalibrated());
     Serial.print(", ");
     Serial.print(DistanceFront.readCalibrated());
     Serial.print(", ");
@@ -306,6 +305,8 @@ void PrintTask() {
     Serial.print(goal.y);
     Serial.print(", ");
 	Serial.print(goal_reached);
+    Serial.print(", ");
+	Serial.print(stucked_counter);
     Serial.println(")");
 }
 
@@ -366,7 +367,7 @@ void ControlPosition() {
         stucked_counter++;
     }
 
-    if((distance_error > 30) && (stucked_counter < 200)) {
+    if((distance_error > 20) && (stucked_counter < 200)) {
         sat = min(Ks, max(-Ks, orientation_error));
 
         turning = TurningControl.update(orientation_error, 0);
@@ -379,8 +380,8 @@ void ControlPosition() {
         goal_reached = true;
         stucked_counter = 0;
 
-        left_speed_demand = 0;
-        right_speed_demand = 0;
+        left_speed_demand = decreaseSpeed(left_speed_demand, 0.3);
+        right_speed_demand = decreaseSpeed(right_speed_demand, 0.3);
     }
 }
 
@@ -539,7 +540,7 @@ Point_t getObstacleCoordinates(float distance, float orientation_offset, bool ma
 Point_t obstacleAvoidanceSensors(float x_goal, float y_goal){
     Point_t result;
     const float Kg = 0.01; //This can be updated to achieve good obstacle avoidance response
-    const float Ko = 1000; //This can be updated to achieve good obstacle avoidance response
+    const float Ko = 100; //This can be updated to achieve good obstacle avoidance response
 
     //Initialise total resultant forces
     float Fx_total = 0;
@@ -576,7 +577,7 @@ Point_t obstacleAvoidanceSensors(float x_goal, float y_goal){
     float Fy_obs;
 
     //Checks if obstacle is too close. Triggered by front sensor only
-    if (dfront< 150){
+    if (dfront< 120){
       //Force due to Front sensor
       obs_coord = getObstacleCoordinates(dfront, sensors_offset[SENSOR_FRONT],false);
       dist_x = - obs_coord.x;
@@ -590,7 +591,7 @@ Point_t obstacleAvoidanceSensors(float x_goal, float y_goal){
     }
 
     //Checks if obstacle is too close. Triggered by front sensor only
-    if (dfront2< 150){
+    if (dfront2< 120){
       //Force due to Front sensor
       obs_coord = getObstacleCoordinates(dfront, sensors_offset[SENSOR_FRONT2],false);
       dist_x = - obs_coord.x;
@@ -648,4 +649,25 @@ Point_t obstacleAvoidanceSensors(float x_goal, float y_goal){
     result.y = angle;
 
     return result;
+}
+
+float decreaseSpeed(float value, float amount) {
+    float sign = 0;
+
+    if(left_speed_demand > 0) {
+        sign = 1;
+    }
+    if(left_speed_demand < 0) {
+        sign = -1;
+    }
+
+    value = abs(value) - amount;
+    if(value < 0) {
+        value = 0;
+    }
+    return value * sign;
+}
+
+void PrintMapTask() {
+    Map.printMap();
 }

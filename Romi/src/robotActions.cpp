@@ -8,8 +8,10 @@
 #include <Arduino.h>
 #include "robotActions.h"
 
-#define MAX_X 25+2
-#define MAX_Y 25+2
+#define MAX_X 15
+#define MAX_Y 15
+#define MIN_X 10
+#define MIN_Y 10
 #define TOLERANCE 0.8
 #define CELL 1
 
@@ -21,15 +23,18 @@ Point_t check_nearest_available(float x, float y, Mapper map){
 	float x_f = 0;
 	float y_f = 0;
 
-	for(int i = 0; i < MAX_X; i++){
-		for(int j = 0; j< MAX_Y; j++){
-			if(map.readEeprom((x-CELL)*(MAP_X / MAP_RESOLUTION) +36, y*(MAP_Y / MAP_RESOLUTION)+36) == map.EXPLORED){
+	short ind_X = x*(MAP_X / MAP_RESOLUTION) +36;
+	short ind_Y = y*(MAP_Y / MAP_RESOLUTION)+36;
+
+	for(int i = MIN_X; i < MAX_X; i++){
+		for(int j = MIN_Y; j< MAX_Y; j++){
+			if(map.readEeprom(ind_X, ind_Y) == map.EXPLORED){
 				dist = sqrt((x-i)*(x-i) + (y-j)*(y-j));
 			}
 			if(dist<low_dist){
 				low_dist = dist;
-				x_f = float(i);
-				y_f = float(j);
+				x_f = i;
+				y_f = j;
 			}
 		}
 	}

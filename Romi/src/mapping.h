@@ -9,6 +9,11 @@ const byte MAP_DEFAULT_FEATURE = '#';
 const int MAP_X=1800;
 const int MAP_Y=1800;
 const int C_HALF_WIDTH = 36;
+const int BORDER_SIZE = 36;
+const int X_LENGHT = 5;
+const int Y_LENGHT = 5;
+const int X_ORIGIN = 900;
+const int Y_ORIGIN = 900;
 
 class Mapper
 {
@@ -20,9 +25,9 @@ class Mapper
         byte readEeprom (float x, float y);
         enum Feature{
             OBSTACLE, //0
-			BORDER, //1
-            RFID, //2
-            LINE, //3
+            LINE, //1
+			BORDER, //2
+            RFID, //3
             VISITED, //4
             EXPLORED,//5
             UNKNOWN//6
@@ -33,7 +38,7 @@ class Mapper
     private:
         int X_size;
         int Y_size;
-        const char *symbols = "OBRL.*#";
+        const char *symbols = "OLBR.*#";
 };
 
 #endif
