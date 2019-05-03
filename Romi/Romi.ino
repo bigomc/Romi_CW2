@@ -535,34 +535,43 @@ void MappingTask() {
     for(int i = min_confidence; (i < distance - 72) && (i < max_confidence); i += distance_resolution) {
         coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_LEFT], true);
         Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
-		Map.updateMapFeature(Map.BORDER, coordinate.y, coordinate.x);
     }
     if(distance < max_confidence) {
         coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_LEFT], true);
-        Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
+		if(distance < max_confidence- 36){
+			Map.updateMapFeature(Map.BORDER, coordinate.y, coordinate.x );
+		}
+		else
+			Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
     }
 
     distance = DistanceFront.readCalibrated();
     for(int i = min_confidence; (i < distance - 72) && (i < 2*max_confidence); i += distance_resolution) {
         coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_FRONT], true);
         Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
-		Map.updateMapFeature(Map.BORDER, coordinate.y, coordinate.x);
     }
-    if(distance < 2*max_confidence) {
+    if(distance < 2*(max_confidence) {
         coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_FRONT], true);
-        Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
-    }
+		if(distance < max_confidence- 72){
+			Map.updateMapFeature(Map.BORDER, coordinate.y, coordinate.x );
+		}
+		else
+			Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
+	}
 
     distance = DistanceRight.readCalibrated();
     for(int i = min_confidence; (i < distance - 72) && (i < max_confidence); i += distance_resolution) {
         coordinate = getObstacleCoordinates(i, sensors_offset[SENSOR_RIGHT], true);
         Map.updateMapFeature(Map.EXPLORED, coordinate.y, coordinate.x );
-		Map.updateMapFeature(Map.BORDER, coordinate.y, coordinate.x);
     }
     if(distance < max_confidence) {
         coordinate = getObstacleCoordinates(distance, sensors_offset[SENSOR_RIGHT], true);
-        Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
-    }
+		if(distance < max_confidence- 36){
+			Map.updateMapFeature(Map.BORDER, coordinate.y, coordinate.x );
+		}
+		else
+			Map.updateMapFeature(Map.OBSTACLE, coordinate.y, coordinate.x );
+	}
 
 
     // Check RFID scanner.
