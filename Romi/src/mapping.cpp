@@ -57,14 +57,14 @@ int Mapper::indexToPose(int i, int map_size, int resolution)
 void Mapper::updateMapFeature(byte feature, float y, float x) {
     updateMapFeature( feature, (int)y, (int)x );
     if(feature == OBSTACLE) {
-        updateMapFeature( BORDER, (int)y, (int)x + BORDER_SIZE );
-        updateMapFeature( BORDER, (int)y + BORDER_SIZE, (int)x + BORDER_SIZE );
-        updateMapFeature( BORDER, (int)y + BORDER_SIZE, (int)x );
-        updateMapFeature( BORDER, (int)y + BORDER_SIZE, (int)x - BORDER_SIZE );
-        updateMapFeature( BORDER, (int)y, (int)x - BORDER_SIZE );
-        updateMapFeature( BORDER, (int)y - BORDER_SIZE, (int)x - BORDER_SIZE);
-        updateMapFeature( BORDER, (int)y - BORDER_SIZE, (int)x );
-        updateMapFeature( BORDER, (int)y - BORDER_SIZE, (int)x + BORDER_SIZE );
+        updateMapFeature( BORDER, (int)y                , (int)x + BORDER_SIZE );
+        updateMapFeature( BORDER, (int)y + BORDER_SIZE  , (int)x + BORDER_SIZE );
+        updateMapFeature( BORDER, (int)y + BORDER_SIZE  , (int)x );
+        updateMapFeature( BORDER, (int)y + BORDER_SIZE  , (int)x - BORDER_SIZE );
+        updateMapFeature( BORDER, (int)y                , (int)x - BORDER_SIZE );
+        updateMapFeature( BORDER, (int)y - BORDER_SIZE  , (int)x - BORDER_SIZE);
+        updateMapFeature( BORDER, (int)y - BORDER_SIZE  , (int)x );
+        updateMapFeature( BORDER, (int)y - BORDER_SIZE  , (int)x + BORDER_SIZE );
     }
 }
 

@@ -38,7 +38,7 @@
 #define LINE_CONFIDENCE 50
 #define VMAX    3
 //#define USE_MAGNETOMETER    1     //To use magnetometer uncomment this line
-//define USE_OBSTACLE_AVOIDANCE  1
+//#define USE_OBSTACLE_AVOIDANCE  1
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Class Instances.                                                              *
@@ -249,7 +249,7 @@ void UpdateTask() {
     imu.getFiltered();
 
     Pose.predictAngularVelocity();
-    //Pose.updateAngularVelocity(deg2rad(imu.gz));
+    Pose.updateAngularVelocity(deg2rad(imu.gz));
     Pose.predictOrientation();
 #ifdef USE_MAGNETOMETER
     //Pose.updateOrientation(Mag.headingFiltered());
