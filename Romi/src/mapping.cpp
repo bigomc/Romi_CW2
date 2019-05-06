@@ -55,9 +55,16 @@ int Mapper::indexToPose(int i, int map_size, int resolution)
 
 
 void Mapper::updateMapFeature(byte feature, float y, float x) {
-    byte current = readEeprom (x, y);
-    if(feature < current) {
-        updateMapFeature( feature, (int)y, (int)x );
+    updateMapFeature( feature, (int)y, (int)x );
+    if(feature == OBSTACLE) {
+        updateMapFeature( BORDER, (int)y                , (int)x + BORDER_SIZE );
+        updateMapFeature( BORDER, (int)y + BORDER_SIZE  , (int)x + BORDER_SIZE );
+        updateMapFeature( BORDER, (int)y + BORDER_SIZE  , (int)x );
+        updateMapFeature( BORDER, (int)y + BORDER_SIZE  , (int)x - BORDER_SIZE );
+        updateMapFeature( BORDER, (int)y                , (int)x - BORDER_SIZE );
+        updateMapFeature( BORDER, (int)y - BORDER_SIZE  , (int)x - BORDER_SIZE);
+        updateMapFeature( BORDER, (int)y - BORDER_SIZE  , (int)x );
+        updateMapFeature( BORDER, (int)y - BORDER_SIZE  , (int)x + BORDER_SIZE );
     }
 }
 
@@ -67,32 +74,39 @@ void Mapper::updateMapFeature(byte feature, int y, int x)
     {
       return;
     }
+    byte current = readEeprom (x, y);
+    if(feature < current) {
+        int x_index = poseToIndex(x, MAP_X, MAP_RESOLUTION);
+        int y_index = poseToIndex(y, MAP_Y, MAP_RESOLUTION);
 
-    int x_index = poseToIndex(x, MAP_X, MAP_RESOLUTION);
-    int y_index = poseToIndex(y, MAP_Y, MAP_RESOLUTION);
+        int eeprom_address = (x_index * MAP_RESOLUTION) + y_index;
 
-    int eeprom_address = (x_index * MAP_RESOLUTION) + y_index;
-
-    if (eeprom_address > 1023)
-    {
-        Serial.println(F("Error: EEPROM Address greater than 1023"));
-    }
-    else
-    {
-        EEPROM.update(eeprom_address, feature);
+        if (eeprom_address > 1023)
+        {
+            Serial.println(F("Error: EEPROM Address greater than 1023"));
+        }
+        else
+        {
+            EEPROM.update(eeprom_address, feature);
+        }
     }
 }
 
-byte Mapper::readEeprom (float x, float y){
-	
-	if((x >= 1800) || (y >= 1800) || (x<0) || (y<0)
-		return 255; //Determine if it is out of bounds or wall detection
-	else{
-		byte value;
-		int x_index = poseToIndex(x, MAP_X, MAP_RESOLUTION);
-		int y_index = poseToIndex(y, MAP_Y, MAP_RESOLUTION);
-		int eeprom_address = (x_index * MAP_RESOLUTION) + y_index;
-		value = EEPROM.read(eeprom_address);
-		return value;
-	}
+byte Mapper::readEeprom (float x, float y) {
+	float limit = X_ORIGIN - ((MAP_X / MAP_RESOLUTION) * (X_LENGHT / 2))-C_HALF_WIDTH;
+	float limit2 = X_ORIGIN + ((MAP_X / MAP_RESOLUTION) * (X_LENGHT / 2))+C_HALF_WIDTH;
+
+    if((x < X_ORIGIN - ((MAP_X/MAP_RESOLUTION) * (X_LENGHT/2)) - C_HALF_WIDTH) ||
+        (x > X_ORIGIN + ((MAP_X/MAP_RESOLUTION) * (X_LENGHT/2)) + C_HALF_WIDTH) ||
+        (y < Y_ORIGIN - ((MAP_Y/MAP_RESOLUTION) * (Y_LENGHT/2)) - C_HALF_WIDTH) ||
+        (y > Y_ORIGIN + ((MAP_Y/MAP_RESOLUTION) * (Y_LENGHT/2)) + C_HALF_WIDTH)) {
+        return BORDER;
+    } else {
+        byte value;
+        int x_index = poseToIndex(x, MAP_X, MAP_RESOLUTION);
+        int y_index = poseToIndex(y, MAP_Y, MAP_RESOLUTION);
+        int eeprom_address = (x_index * MAP_RESOLUTION) + y_index;
+        value = EEPROM.read(eeprom_address);
+        return value;
+    }
 }
