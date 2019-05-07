@@ -40,7 +40,7 @@ Point_t check_nearest_available(int x_ind, int y_ind, Mapper map) {
 		}
 	}
 
-	return { x_f, y_f, 2};
+	return { x_f, y_f, 255};
 }
 
 Heading_t radToHeading(float rad){

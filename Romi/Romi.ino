@@ -49,7 +49,7 @@
 Kinematics    Pose; //Kinematics class to store position and heading
 
 LineSensor    LineLeft(LINE_LEFT_PIN); //Left line sensor
-LineSensor    LineCentre(LINE_CENTRE_PIN); //Centre line sensor
+//LineSensor    LineCentre(LINE_CENTRE_PIN); //Centre line sensor
 LineSensor    LineRight(LINE_RIGHT_PIN); //Right line sensor
 
 SharpIR       DistanceFront(SHARP_IR_FRONT_PIN); //Distance sensor front
@@ -91,19 +91,14 @@ Pushbutton    ButtonB( BUTTON_B, DEFAULT_STATE_HIGH);
  float position_error;
  float last_distance_error;
  int stucked_counter = 0;
- const float Ks = PI/4;
+ float Ks = PI/4;
+ bool obstacle_avoidance_flag = false;
 
  // Planning Variables
  volatile bool goal_reached = false;
- //Point_t points = move(Pose.getX(), Pose.getY(), Pose.getThetaRadians(), Map);
- //const Point_t points[];// = { {1764, 900}, {900, 1764}, {36, 900}, {900, 36} };
- int point_index = 0;
 
  // Obstacle avoidance Variables
- float mag;
- float ang;
- float obs_x;
- float obs_y;
+
 
 //Use these variables to set the demand of the speed controller
  float left_speed_demand = 0;
@@ -160,7 +155,7 @@ void setup()
 
   // Calibration code
   Serial.println("Calibrating line sensors");
-  LineCentre.calibrate();
+  //LineCentre.calibrate();
   LineLeft.calibrate();
   LineRight.calibrate();
 
@@ -201,6 +196,15 @@ void setup()
 #endif
   // ...
   // but not after the following:
+
+  for(int i = 0; i < 5; i++) {
+      digitalWrite(YELLOW_LED, HIGH);
+      digitalWrite(GREEN_LED, HIGH);
+      delay(200);
+      digitalWrite(YELLOW_LED, LOW);
+      digitalWrite(GREEN_LED, LOW);
+      delay(800);
+  }
 
   // Because code flow has been blocked, we need to reset the
   // last_time variable of the PIDs, otherwise we update the
@@ -270,7 +274,7 @@ void SensorsTask() {
     DistanceFront.read();
     DistanceRight.read();
     DistanceFront2.read();
-    LineCentre.read();
+    //LineCentre.read();
     LineLeft.read();
     LineRight.read();
 }
@@ -344,21 +348,23 @@ void ControlPosition() {
     float ahead;
 
     direction = obstacleAvoidanceSensors (goal.x, goal.y);
+    digitalWrite(RED_LED, obstacle_avoidance_flag);
 
-#ifdef USE_OBSTACLE_AVOIDANCE
     last_distance_error = distance_error;
-    position_error = direction.x;
-    distance_error = sqrt(x_error*x_error + y_error*y_error);
-    orientation_error = direction.y - Pose.getThetaRadians();
-#else
-    last_distance_error = distance_error;
-    position_error = sqrt(x_error*x_error + y_error*y_error);
-    distance_error = position_error;
-    if(position_error > 1) {
-        position_error = 1;
+    if(obstacle_avoidance_flag) {
+        position_error = direction.x;
+        distance_error = sqrt(x_error*x_error + y_error*y_error);
+        orientation_error = direction.y - Pose.getThetaRadians();
+        Ks = PI;
+    } else {
+        position_error = sqrt(x_error*x_error + y_error*y_error);
+        distance_error = position_error;
+        if(position_error > 1) {
+            position_error = 1;
+        }
+        orientation_error = atan2(y_error, x_error) - Pose.getThetaRadians();
+        Ks = PI/4;
     }
-    orientation_error = atan2(y_error, x_error) - Pose.getThetaRadians();
-#endif
 
     if(orientation_error < -PI ){
         orientation_error += (2 * PI);
@@ -384,8 +390,8 @@ void ControlPosition() {
         goal_reached = true;
         stucked_counter = 0;
 
-        left_speed_demand = decreaseSpeed(left_speed_demand, 0.3);
-        right_speed_demand = decreaseSpeed(right_speed_demand, 0.3);
+        left_speed_demand = decreaseSpeed(left_speed_demand, 0.1);
+        right_speed_demand = decreaseSpeed(right_speed_demand, 0.1);
     }
 }
 
@@ -405,6 +411,14 @@ void PlanningTask() {
 
         goal.x = goals.x*(MAP_X / MAP_RESOLUTION) +36 ;
         goal.y = goals.y*(MAP_Y / MAP_RESOLUTION) + 36;
+
+        if(goals.heading == 255) {
+#ifdef USE_OBSTACLE_AVOIDANCE
+            obstacle_avoidance_flag = true;
+#endif
+        } else {
+            obstacle_avoidance_flag = false;
+        }
 
         goal_reached = false;
 
@@ -544,7 +558,7 @@ Point_t getObstacleCoordinates(float distance, float orientation_offset, bool ma
 Point_t obstacleAvoidanceSensors(float x_goal, float y_goal){
     Point_t result;
     const float Kg = 0.01; //This can be updated to achieve good obstacle avoidance response
-    const float Ko = 100; //This can be updated to achieve good obstacle avoidance response
+    const float Ko = 10000; //This can be updated to achieve good obstacle avoidance response
 
     //Initialise total resultant forces
     float Fx_total = 0;
