@@ -35,8 +35,9 @@
 #define SAMPLING_TICK_PERIOD    5
 #define MAX_VELOCITY    3
 #define TIME_LIMIT  1800000
-#define LINE_CONFIDENCE 50
+#define LINE_CONFIDENCE 60
 #define VMAX    3
+#define USE_SENSOR_FUSION   1
 //#define USE_MAGNETOMETER    1     //To use magnetometer uncomment this line
 //#define USE_OBSTACLE_AVOIDANCE  1
 
@@ -247,12 +248,15 @@ void UpdateTask() {
     Mag.read();
 #endif
     imu.getFiltered();
-
     Pose.predictAngularVelocity();
+#ifdef USE_SENSOR_FUSION
     Pose.updateAngularVelocity(deg2rad(imu.gz));
+#endif
     Pose.predictOrientation();
+#ifdef USE_SENSOR_FUSION
 #ifdef USE_MAGNETOMETER
-    //Pose.updateOrientation(Mag.headingFiltered());
+    Pose.updateOrientation(Mag.headingFiltered());
+#endif
 #endif
     Pose.updatePosition();
 }
@@ -288,9 +292,9 @@ void PrintTask() {
     Serial.print(", ");
     Serial.print(right_speed_demand);
     Serial.print(")] [");
-    Serial.print(DistanceLeft.readCalibrated());
+    Serial.print(LineLeft.readCalibrated());
     Serial.print(", ");
-    Serial.print(DistanceFront.readCalibrated());
+    Serial.print(LineRight.readCalibrated());
     Serial.print(", ");
     Serial.print(DistanceFront2.readCalibrated());
     Serial.print(", ");
@@ -513,7 +517,7 @@ void MappingTask() {
     // Basic uncalibrated check for a line.
     // Students can do better than this after CW1 ;)
     // Condition will depend on calibration method, the one below worked for my Romi using static calibration
-    if( (LineLeft.readCalibrated() + LineRight.readCalibrated()) > LINE_CONFIDENCE  ) {
+    if((LineLeft.readCalibrated() > LINE_CONFIDENCE) || (LineRight.readCalibrated() > LINE_CONFIDENCE)) {
         Map.updateMapFeature(Map.LINE, Pose.getY(), Pose.getX() );
     }
 

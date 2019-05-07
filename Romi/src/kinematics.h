@@ -51,10 +51,10 @@ class Kinematics
         unsigned long last_update = 0;
         float time_elapsed = 0;
 
-        float Q_w = 0.1;
+        float Q_w = 0.05;
         float K_w = 1;
         float P_w = 10;
-        const float R_w = 0.1;
+        const float R_w = 0.5;
 
         float Q_t = 0.2;
         float K_t = 1;
