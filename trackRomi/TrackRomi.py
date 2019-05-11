@@ -9,7 +9,6 @@ import time
 import rangeFinder
 import gridMap
 import croppingExample
-
 # construct the argument parse and parse the arguments
 
 
@@ -17,8 +16,8 @@ import croppingExample
 ap = argparse.ArgumentParser()
 # ap.add_argument("-m", "--map", required=True,
 #                 help="path to the map without romi image file")
-ap.add_argument("-i", "--image", required=True,
-                help="path to the calibration image file")
+# ap.add_argument("-i", "--image", required=True,
+#                 help="path to the calibration image file")
 ap.add_argument("-v", "--video", required = True,
                 help="path to the (optional) video file")
 ap.add_argument("-b", "--buffer", type=int, default=32768,
@@ -26,21 +25,7 @@ ap.add_argument("-b", "--buffer", type=int, default=32768,
 args = vars(ap.parse_args())
 
 
-print("Region of interest for romi detecion: \nPress r to reset \n Press c if you are happy!")
-[roi, p1, p2, p3, p4] = croppingExample.get_cropping_map(cv2.imread(args['image']))
 
-print("Press 's' if you are happy with the range")
-H_min, S_min, V_min, H_max, S_max, V_max = rangeFinder.rangefinder(roi)# H, S, V (min) | H, S, V (max)
-# keep going with "s"
-
-
-# define the lower and upper boundaries for the object to track HSV color space, then initialize the
-# list of tracked points
-
-##these values give the romi color
-HSV_Lower = (H_min, S_min, V_min)
-HSV_Upper = (H_max, S_max, V_max)
-####
 
 pts = deque(maxlen=args["buffer"])
 
@@ -58,16 +43,31 @@ time.sleep(2.0)
 
 frame = vs.read()
 frame = frame[1] if args.get("video", False) else frame
+baseImg = frame.copy()
+
+print("Region of interest for romi detecion: \nPress r to reset \n Press c if you are happy!")
+[roi, p1, p2, p3, p4] = croppingExample.get_crop(baseImg)
+
+print("Press 's' if you are happy with the range")
+H_min, S_min, V_min, H_max, S_max, V_max = rangeFinder.rangefinder(roi)# H, S, V (min) | H, S, V (max)
+# keep going with "s"
+
+
+# define the lower and upper boundaries for the object to track HSV color space, then initialize the
+# list of tracked points
+
+##these values give the romi color
+HSV_Lower = (H_min, S_min, V_min)
+HSV_Upper = (H_max, S_max, V_max)
+####
+
 print("Region of interest to crop the map: \nPress r to reset \n Press c if you are happy!")
-[roi, p1, p2, p3, p4] = croppingExample.get_cropping_map(frame)
-
-frame = croppingExample.map_cropped(roi, p1, p2, p3, p4)
-
+[frame, p1, p2, p3, p4] = croppingExample.get_cropping_map(frame)
 
 print("Making the initial map with points")
 [baseImg, baseSum] = gridMap.gridMapping(frame, False)
 print("The base points that romi is required to complete are {0}".format(baseSum))
-visitedImg = baseImg
+visitedImg = baseImg.copy()
 
 # keep looping
 while (frame is not None):
@@ -77,7 +77,7 @@ while (frame is not None):
     # resize the frame, blur it, and convert it to the HSV
     # color space
     # frame = imutils.resize(frame, width=600)
-    frame = croppingExample.map_cropped(frame, p1, p2, p3, p4)  ## roi
+    frame = croppingExample.four_point_transform(frame, np.array([p1, p2, p3, p4]))  ## roi
     goalImg = frame
 
     blurred = cv2.GaussianBlur(frame, (11, 11), 0)
@@ -163,11 +163,11 @@ else:
 
 print("making the grid")
 
-[visitedImg, visitedPoints] = gridMap.subdivide(baseImg, True)
+[visitedImg, visitedPoints] = gridMap.subdivide(visitedImg, True)
 
 print("Now we can compare both images")
 
-cv2.imshow("Base Image", baseImg)
+# cv2.imshow("Base Image", baseImg)
 cv2.imshow("Visited Image", visitedImg)
 
 print("Required spaces to visit: ", baseSum, "\nVisited Spaces: ", visitedPoints)
